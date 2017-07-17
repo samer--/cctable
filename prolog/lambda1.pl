@@ -43,23 +43,3 @@ copy_lambda(M:Lam, M:Copy) :- copy_term_nat(Lam,Copy).
 ^(A,B,A,V1,V2,V3) :- call(B,V1,V2,V3).
 ^(A,B,A,V1,V2,V3,V4) :- call(B,V1,V2,V3,V4).
 ^(A,B,A,V1,V2,V3,V4,V5) :- call(B,V1,V2,V3,V4,V5).
-
-% ---------------- another version ---------------
-
-:- op(600,xfx,<-).
-
-:- meta_predicate <-(?,0), <-(?,1,?), <-(?,2,?,?), <-(?,3,?,?,?), <-(?,4,?,?,?,?), <-(?,5,?,?,?,?,?).
-<-(Args,Body) :- copy_lambda(Args,Body,As,B), hat(As,B,[]). 
-<-(Args,Body,A1) :- copy_lambda(Args,Body,As,B), hat(As,B,[A1]). 
-<-(Args,Body,A1,A2) :- copy_lambda(Args,Body,As,B), hat(As,B,[A1,A2]). 
-<-(Args,Body,A1,A2,A3) :- copy_lambda(Args,Body,As,B), hat(As,B,[A1,A2,A3]). 
-<-(Args,Body,A1,A2,A3,A4) :- copy_lambda(Args,Body,As,B), hat(As,B,[A1,A2,A3,A4]). 
-<-(Args,Body,A1,A2,A3,A4,A5) :- copy_lambda(Args,Body,As,B), hat(As,B,[A1,A2,A3,A4,A5]). 
-
-copy_lambda(G/A,B,A1,B1) :- copy_term_nat(t(G,A,B),t(G,A1,B1)).
-copy_lambda(\A,B,A1,B1) :- copy_term_nat(A/B,A1/B1).
-
-% badly typed, uses univ operator!
-hat([],B,Vs) :- G =.. [call, B | Vs], call(G).
-hat([A|As],B,[A|Vs]) :- hat(As,B,Vs).
-
