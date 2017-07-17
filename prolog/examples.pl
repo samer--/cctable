@@ -1,12 +1,6 @@
-:- module(tabled, [fib/2, pathl//0, pathr//0]).
+:- module(examples, [fib/2, pathl//0, pathr//0]).
 
-/** <module> Test predicates for tabling
-   NB. this module expects cctabled/1 to be imported into user.
-*/
-
-:- use_module(library(ccmacros)).
-:- persistent_history.
-:- cctable fib/2.
+:- table fib/2.
 
 fib(0,1).
 fib(1,1).
@@ -25,13 +19,13 @@ edge(f,g).
 edge(N,M) :- number(N), (M is N+1; M is N-1).
 
 % four tabled transitive closures of edge/2
-:- cctable pathl//0, pathl1//0, pathr//0, pathr1//0.
+:- table pathl//0, pathl1//0, pathr//0, pathr1//0.
 pathl  --> edge; pathl, edge.
 pathl1 --> pathl1, edge; edge.
 pathr  --> edge; edge, pathr.
 pathr1 --> edge, pathr1; edge.
 
-:- cctable ppp//0, qqq//0.
+:- table ppp//0, qqq//0.
 ppp --> qqq, edge; edge.
 qqq --> ppp.
 
@@ -39,15 +33,13 @@ qqq --> ppp.
 path_a(Y) :- pathl(a,X), Y=a(X).
 path1_a(Y) :- pathl1(a,X), Y=a(X).
 
-:- initialization debug(cctab), module(tabled).
-
-:- cctable sent//0, sent1//1.
+:- table sent//0, sent1//1.
 sent --> {member(A, [b,l,r])}, sent1(A).
 sent1(b) --> {member(W,[cool,wicked])}, [W].
 sent1(l) --> sent, [not].
 sent1(r) --> [really], sent.
 
-:- cctable last/2.
+:- table last/2.
 last([X],X).
 last([_|Xs],X) :- last(Xs,X).
 
@@ -56,10 +48,14 @@ last([_|Xs],X) :- last(Xs,X).
 user:term_expansion(Lab | Body, Clause) :-
    dcg_translate_rule(Lab --> Body, Clause).
 
+%% +(Preterm)// is nondet.
+%  Nonterminal for a pre-terminal -- Preterm is expected to be a DCG
+%  goal that generates a list of alternative terminals. Then, one of
+%  these terminals is emitted nondeterministically.
 :- meta_predicate +(2,?,?).
 +Lab --> [T], {call(Lab,Vals,[]), member(T,Vals)}.
 
-:- cctable s//0, np//0, vp//0, pp//0, nom//0.
+:- table s//0, np//0, vp//0, pp//0, nom//0.
 
 s --> np, vp.
 
