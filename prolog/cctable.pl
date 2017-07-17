@@ -9,7 +9,6 @@
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
 :- use_module(library(ccstate), [run_nb_state/3, set/1, get/1]).
 :- use_module(library(rbutils)).
-:- use_module(library(lambda1)).
 
 
 %% cctabled(+Head:callable) is det.
@@ -61,3 +60,17 @@ producer(Variant, Generate, KP, Ans) :-
    set(Tabs2),
    member(K,[KP|Ks]), 
    call(K,Y1,Ans).
+
+% Very small lambda library (with no free variables)
+:- meta_predicate \(0), \(1,?), \(2,?,?).
+:- meta_predicate ^(?,0,?), ^(?,1,?,?), ^(?,2,?,?,?).
+
+\(Lambda) :- copy_lambda(Lambda,Copy), call(Copy).
+\(Lambda,A1) :- copy_lambda(Lambda,Copy), call(Copy,A1).
+\(Lambda,A1,A2) :- copy_lambda(Lambda,Copy), call(Copy,A1,A2).
+
+copy_lambda(M:Lam, M:Copy) :- copy_term(Lam,Copy).
+
+^(A,B,A) :- call(B).
+^(A,B,A,V1) :- call(B,V1).
+^(A,B,A,V1,V2) :- call(B,V1,V2).
