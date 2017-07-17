@@ -1,20 +1,21 @@
-:- module(ccmacros, [op(1150,fx,cctable)]).
+:- module(ccmacros, [op(1150,fx,table), cctabled/1]).
 /** <module> Term expansions to support tabling
 
 This module implements a shallow program transformation to support
-tabling. Predicates decalared `cctabled` are renamed (by a appending
+tabling. Predicates decalared `tabled` are renamed (by a appending
 a '#' to their given name) and the original predicate name defined
 as a metacall of the renamed predicate via cctable/1, which is 
 assumed to be available in the module where the tabled precicate
 is defined.
 */
 
-:- op(1150,fx,cctable).
+:- use_module(cctable, [cctabled/1]).
+:- op(1150,fx,table).
 
-%% cctable(PredSpecfiers) is det
+%% table(PredSpecfiers) is det
 %  Declare predicates in PredSpecifiers (a comma separated list of Name/Arity
 %  predicate specifier) as tabled.
-system:term_expansion((:- cctable(Specs)), Clauses) :- 
+system:term_expansion((:- table(Specs)), Clauses) :- 
    foldl_clist(expand_cctab, Specs, Clauses, []).
 
 foldl_clist(P,(A,B)) --> !, call(P,A), foldl_clist(P,B).
@@ -38,6 +39,3 @@ prolog:rename_predicate(M:Head, M:Worker) :-
 head_worker(Head, Worker) :-
    Head   =.. [H|As], atom_concat(H,'#',W),
    Worker =.. [W|As].
-
-% work around for broken rb_in/3
-cctab:goal_expansion(rb_in(K,V,T), (rbtrees:rb_in(KK,V,T),K=KK)).
