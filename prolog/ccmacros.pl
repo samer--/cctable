@@ -1,4 +1,4 @@
-:- module(ccmacros, [op(1150,fx,table), cctabled/1]).
+:- module(ccmacros, [op(1150,fx,table)]).
 /** <module> Term expansions to support tabling
 
 This module implements a shallow program transformation to support
@@ -9,7 +9,6 @@ assumed to be available in the module where the tabled precicate
 is defined.
 */
 
-:- use_module(cctable, [cctabled/1]).
 :- op(1150,fx,table).
 
 %% table(PredSpecfiers) is det
