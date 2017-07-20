@@ -1,4 +1,4 @@
-:- module(cclist, [run_list/2, choose/2, guard/1, memo_nondet/3, memo_nondet/2]).
+:- module(ccmemo, [run_list/2, choose/2, guard/1, memo_nondet/3, memo_nondet/2]).
 
 /** <module> Nondeterminism as a list with recursive memoisation
 
@@ -20,7 +20,7 @@ a context that provides mutable references as a control effect.
 
 :- meta_predicate memo_nondet(2,-), memo_nondet(2,-,-).
 memo_nondet(P,Q) :- memo_nondet(P,Q,_).
-memo_nondet(P, cclist:memf(P,R), cclist:memdump(R)) :-
+memo_nondet(P, ccmemo:memf(P,R), ccmemo:memdump(R)) :-
    rb_empty(T),
    ref_new(T,R).
 
