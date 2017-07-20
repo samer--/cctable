@@ -7,6 +7,9 @@
 :- use_module(library(ccstate),  [run_ref/1]).
 :- use_module(cclist, [guard/1, choose/2, run_list/2, memo_nondet/2, memo_nondet/3]).
 
+run_list_ref(P,Ans) :-
+   run_ref(run_list(P,Ans)).
+
 % ------- DCG utilities ----------
 
 % binary choice between two DCG goals
@@ -19,14 +22,18 @@
 t(_,[],_) :- !, guard(false).
 t(W,[X|T],T) :- guard(W=X).
 
-% -------- test programs ---------
+% -------- test programs -------------------------
 
+% Run these using run_list_ref, passing just the name of the predicate
+% for the first argument, eg =|run_list_ref(test1,Ans)|=.
 test1(r(X)) :- 
    choose([1,2,3],X).
 
 test2(Y) :-
    choose([1,2,3],X),
    choose([a(X),b(X),c(X)],Y).
+
+% ---- Recursive path finding ---------------------
 
 link(a,X) :- choose([b,c],X).
 link(b,d).
@@ -37,7 +44,7 @@ link(f,X) :- choose([g,h],X).
 link(g,h).
 link(h,X) :- choose([],X).
 
-% open recursive path predicates (in DCG form)
+% open recursive transitive closures (in DCG form)
 pathr(P) --> link, ([] <+> P).
 pathl(P) --> ([] <+> P), link.
 
@@ -45,6 +52,8 @@ mem_path(left, P) :- memo_nondet(pathl(P), P).
 mem_path(right, P) :- memo_nondet(pathr(P), P).
 test_path(LR, Start, Ends) :-
    mem_path(LR, P), run_list(call(P,Start), Ends).
+
+% ------ Grammars ----------------------------------------
 
 % left and right recursive grammars from Frost et al.
 s(S)      --> [] <+> t(a), S, S.

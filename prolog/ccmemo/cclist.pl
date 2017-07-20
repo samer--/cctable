@@ -39,7 +39,6 @@ guard(P) :- call(P) -> true; choose([],_).
 %  NB means nondet:prompt(ltree(A)).
 :- meta_predicate run_list(1,-).
 run_list(P,Result) :- pr_reset(nondet, to_list(P), Result).
-
 to_list(P,[X]) :- call(P,X).
 
 % choose(Xs:list(B),X:B): handler(list(A)).
