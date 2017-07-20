@@ -5,7 +5,9 @@ based memoisation presented in [1], which was in turn based on the work in [2].
 You must install the SWI Prolog add-on package `genutils` to run this code. At
 the SWI Prolog prompt, do
 
+   ```prolog
    ?- pack_install(genutils).
+   ```
 
 Only binary predicates with one input and one output argument can be memoised.
 This is done using `memo_nondet/2` (or `memo_nondet/3` to get access to the memo
@@ -30,7 +32,7 @@ contexts for mutable references and nondeterministic memoisation, for example:
 The more complicated examples have test predicates which provide the context
 for nondeterminism, but not for references, which you must provide when you call them:
 
-   ```
+   ```prolog
    test_memo:  ?- run_ref(test_path(left, a, Ends)).
    Ends = [b, c, d, e, g, h, f].
    ```
@@ -60,4 +62,5 @@ released until you exit the nested shell by typing Control-D.
 
 [1] Samer Abdallah. Memoisation: Purely, Left-recursively, and with (Continuation Passing) Style. 2017
     https://arxiv.org/abs/1707.04724
+
 [2] Mark Johnson. Memoization in top-down parsing. Computational Linguistics, 21(3):405– 417, 1995.
