@@ -3,7 +3,7 @@
 :- use_module(library(dcg_core), [rep//2]).
 
 :- table advm//0, adjm//0, nm//0, vc//0, np0//0, np1//0, np//0, pp//0, vp//0,
-           s//0, dir//0, start//0.
+         s//0, dir//0, start//0.
 
 start --> dir ; np ; s.
 

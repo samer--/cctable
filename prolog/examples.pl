@@ -1,7 +1,6 @@
 :- module(examples, [fib/2, pathl//0, pathr//0]).
 
 :- table fib/2.
-
 fib(0,1).
 fib(1,1).
 fib(N,X) :-
@@ -16,7 +15,6 @@ edge(c,d).
 edge(d,e).
 edge(d,f).
 edge(f,g).
-edge(N,M) :- number(N), (M is N+1; M is N-1).
 
 % four tabled transitive closures of edge/2
 :- table pathl//0, pathl1//0, pathr//0, pathr1//0.
@@ -25,24 +23,14 @@ pathl1 --> pathl1, edge; edge.
 pathr  --> edge; edge, pathr.
 pathr1 --> edge, pathr1; edge.
 
-:- table ppp//0, qqq//0.
-ppp --> qqq, edge; edge.
-qqq --> ppp.
+% mutual left recursion
+:- table pathml//0, aux//0.
+pathml --> aux, edge; edge.
+aux --> pathml.
 
 % for testing handling of input and output variables in continuations.
 path_a(Y) :- pathl(a,X), Y=a(X).
 path1_a(Y) :- pathl1(a,X), Y=a(X).
-
-:- table sent//0, sent1//1.
-sent --> {member(A, [b,l,r])}, sent1(A).
-sent1(b) --> {member(W,[cool,wicked])}, [W].
-sent1(l) --> sent, [not].
-sent1(r) --> [really], sent.
-
-:- table last/2.
-last([X],X).
-last([_|Xs],X) :- last(Xs,X).
-
 
 % specify preterminals as DCG that spits out alternatives
 user:term_expansion(Lab | Body, Clause) :-
@@ -84,4 +72,3 @@ tv  | [saw, ate, hated, baked, liked, walked, ran, loved, caught].
 iv  | [lived, worked].
 n   | [dog,telescope,man,cat,mat,cake,box,floor,face,pie,moose,pyjamas,park].
 p   | [with,on,under,in,without,by].
-

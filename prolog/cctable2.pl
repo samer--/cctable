@@ -1,9 +1,10 @@
-:- module(cctable, [run_tabled/1, cctabled/1]).
+:- module(cctable2, [run_tabled/1, cctabled/1]).
 /** <module> Tabling using multi-prompt delimited control
 
    This module provides a declarative implementation of tabling using delimited
    continuations to manage the state of the tables and to implement tabling
-   itself. 
+   itself. Similar to cctable, but using a much faster system for managing
+   nonbacktrable state.
 */
 
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
@@ -18,10 +19,9 @@
 :- meta_predicate cctabled(0).
 cctabled(Head) :- p_shift(tab, Head).
 
-%% run_tabled(+G:callable, -Tables) is det.
 %% run_tabled(+G:callable) is det.
 %  Run G in a context which supports tabling. Tabled predicates are called
-%  using cctabled/1. Predicates can be statically annoted as tabled and calls 
+%  using cctabled/1. Predicates can be statically annoted as tabled and calls
 %  cctabled/1 introduced using the source %  transformations in ccmacros.pl.
 :- meta_predicate run_tabled(0).
 run_tabled(Goal) :-
