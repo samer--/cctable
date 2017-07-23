@@ -36,7 +36,6 @@ choose(Xs,X) :- pr_shift(nondet, choose(Xs,X)).
 guard(P) :- call(P) -> true; choose([],_).
 
 %% run_list(+P:pred(A), -T:list(A)) is det.
-%  NB means nondet:prompt(ltree(A)).
 :- meta_predicate run_list(1,-).
 run_list(P,Result) :- pr_reset(nondet, to_list(P), Result).
 to_list(P,[X]) :- call(P,X).

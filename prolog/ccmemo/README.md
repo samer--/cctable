@@ -2,11 +2,11 @@
 
 This is a more or less straight translation of the functional style continuation
 based memoisation presented in [1], which was in turn based on the work in [2].
-You must install the SWI Prolog add-on package `genutils` to run this code. At
-the SWI Prolog prompt, do
+You must install the SWI Prolog add-on packages `genutils` and `dcgutils` to run 
+this code. At the SWI Prolog prompt, do
 
    ```prolog
-   ?- pack_install(genutils).
+   ?- maplist(pack_install, [genutils, dcgutils]).
    ```
 
 Only binary predicates with one input and one output argument can be memoised.
@@ -54,7 +54,7 @@ can run the various tests without calling `run_ref/1` again, eg
    true.
    ```
 
-The [1] indicates that you are in a nested shell.
+The [1] in the prompt indicates that you are in a nested shell.
 Note, however, that old references are not garbage collected and will not be
 released until you exit the nested shell by typing Control-D.
 
