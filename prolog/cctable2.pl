@@ -4,7 +4,7 @@
    This module provides a declarative implementation of tabling using delimited
    continuations to manage the state of the tables and to implement tabling
    itself. Similar to cctable, but using a much faster system for managing
-   nonbacktrable state.
+   nonbacktrackable state.
 */
 
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).

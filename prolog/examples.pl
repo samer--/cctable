@@ -1,4 +1,5 @@
-:- module(examples, [fib/2, pathl//0, pathr//0]).
+:- module(examples, [fib/2, pathl//0, pathr//0, silly//0]).
+/** <module> Some tables predicates and grammars */
 
 :- table fib/2.
 fib(0,1).
@@ -45,6 +46,7 @@ user:term_expansion(Lab | Body, Clause) :-
 
 :- table s//0, np//0, vp//0, pp//0, nom//0.
 
+silly --> s.
 s --> np, vp.
 
 np --> +d, nom

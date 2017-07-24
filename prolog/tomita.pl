@@ -1,4 +1,7 @@
 :- module(tomita, [start//0]).
+/** <module> One of Tomita's example grammars
+  Tomita grammar number 2 from Frost et al 2007. Works at part-of-speech level.
+ */
 
 :- use_module(library(dcg_core), [rep//2]).
 
