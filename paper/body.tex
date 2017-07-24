@@ -1,4 +1,380 @@
+\makebox[0pt]{\lstMakeShortInline| \lstMakeShortInline[language=Prolog,emph={X,Y,Z},emphstyle=\upshape,identifierstyle=\itshape]@}
+
 \section{Introduction}
 \seclab{intro}
+
+Tabling, or memoisation, is a well known technique for speeding up computations
+by saving and reusing the results of earlier subcomputations instead of repeating
+them. In other contexts, this strategy is called `dynamic programming', and, when
+used effectively, can reduce algorithms with exponential time complexity to polynomial
+or linear complexity.
+
+We assume some familiarity with Prolog.
+
+\section{Background}
+
+Memoisation
+\cite{Michie1968}.
+Tabling, Earley deduction, OLDT and SLG
+\cite{Earley1970,Warren1975,PereiraWarren1980,Porter1986,TamakiSato1986}.
+Delimited continuations \cite{Felleisen1988,DanvyFilinski1990,Filinski1999,Shan2004,KiselyovShan2009,Kiselyov2012}.
+Memoising functional parser combinators \cite{Norvig1991,Lindgren1994,Johnson1995}.
+Continuations in Prolog \cite{TarauNeumerkel1994,TarauDahl1998,Neumerkel1995,SchrijversDemoenDesouter2013,DesouterVan-DoorenSchrijvers2015}.
+
+\section{Multi-prompt delimited control in Prolog}
+
+Continuation passing style and continuation-based control operators have been most studied in the
+context of lambda calculus and functional programming \citep{SussmanSteele1975}.
+The idea of delimited continuations was arrived at independently by \cite{Felleisen1988} and
+\cite{DanvyFilinski1990}. Multiple, first class, independently addressible prompts were introduced
+by \cite{DyvbigJonesSabry2005} in their monadic Haskell implementation, which was reimplemented
+by \cite{Kiselyov2012} as an OCaml library to be used in `direct style'
+(i.e. using neither monadic nor explicit continuation passing styles). The core ideas of multi-prompt delimited
+control can be described in terms of the |new_prompt|, |push_prompt| and |shift| operators provided by
+this library, which have the following OCaml types:
+\begin{ocamlet}
+	new_prompt	: unit -> 'a prompt
+	push_prompt	: 'a prompt -> (unit -> 'a) -> 'a
+	shift        : 'a prompt -> (('b -> 'a) -> 'a) -> 'b
+\end{ocamlet}
+Given a prompt |p| with answer type |'a|, created using |new_prompt|, a thunk |f : unit -> 'a| is evaluated
+in a context delimited by the
+prompt |p| by calling |push_prompt p f| (which plays the role of |reset| in earlier
+formulations of delimited control that lack explicit, first class prompts).
+Calls to |push_prompt|, using the same or differing prompts, can be nested arbitrarily.
+If, inside |f|, there is a call to |shift p h|, the
+continuation up to the nearest instance of |push_prompt p| is captured as a function |k : 'b -> 'a|, and passed to the handler
+|h|, which must return a value of type |'a|. The captured continuation includes an implict
+enclosing |push_prompt p|, which means that it looks, from the outside,
+like a pure function, and can be called zero, once, or many times.
+
+\citepos{SchrijversDemoenDesouter2013} implementation of delimited continuations for Prolog provides two
+primitives, "reset/3" and "shift/1". If a Prolog goal is called as "reset(Goal, Ball, Cont)", with both
+"Ball" and "Cont" unbound, then "Goal" is executed inside a delimited context. If it completes
+successfully, then "Cont" is unified with "0".  If, however, "shift/1" is called inside "Goal", then "Cont" is bound
+to a callable representation of the continuation from that point out to the enclosing the prompt, "Ball"
+is bound to the argument of "shift/1", and control is passed to the code immediately following the "reset".
+The continuation "Cont" can be called subsequently, resuming the interrupted execution of the original
+goal, but if that includes further calls to "shift/1", then it must be called inside a new
+"reset/3", since, unlike with the functional version of |shift|, the captured continuation itself
+does \emph{not} reestablish the delimited context.
+
+Calls to "reset/3" can be nested.  In this case, a "shift" is handled by the nearest
+enclosing "reset", \emph{unless} that "reset" was called with a partially instantiated "Ball" parameter
+that does not unify with the parameter of "shift/1". In this case, the "shift" travels outwards
+until a "reset" with a unifiable "Ball" parameter is found. This mechanism is intended to allow different
+computational effects to be implemented by nesting calls to "reset/3", each matching a different set of
+"Ball" terms and each accompanied by a suitable effect handler to deal with the requested effect and then 
+resume the computation by calling the continuation.
+However, a problem with the current implementation makes it difficult to exploit this behaviour:
+in the following example, "run_inner/1" and "run_outer/1" are two effect handlers, neither of which do
+anything useful, but both correctly invoke their continuations by calling themselves recursively
+to reestablish their respective contexts:
+\begin{prolog-barred}
+  run_inner(G) :- reset(G, inner(X), Cont), run_inner(Cont).
+  run_outer(G) :- reset(G, outer(X), Cont), run_outer(Cont).
+  work :- shift(outer(1)), shift(inner(2)).
+  test :- run_outer(run_inner(work)).
+\end{prolog-barred}
+If "test/0" is called to run "work/0" in a nested context, then the "shift(outer(1))"
+will pass through the inner reset and be caught by the outer one. However, the captured
+continuation contains neither the outer \emph{nor} the inner prompt. When the continuation is resumed,
+the outer prompt is restored by the outer handler, but the inner prompt is still missing, so that
+when "shift(inner(2))" is called, there is no matching "reset" to deal with it and an exception will be
+raised.
+
+In order to implemented multi-prompt delimited control without using the partially instantiated
+"Ball" feature, we will begin with a module "delimcc" that implements nested delimited contexts
+correctly on top of the "reset/3" and "shift/1" interface, but exposing an explict first class prompt
+as in \citepos{DyvbigJonesSabry2005} and \citepos{Kiselyov2012} libraries. 
+(Supporting modules can be found in the appendix.)
+\begin{prolog-framed}[name=delimcc]
+  :- module(delimcc, [p_shift/2, p_reset/3, pr_shift/2, pr_reset/3]).
+  :- use_module(lambdaki).
+
+  :- meta_predicate p_reset(+,0,-).
+  p_reset(Prompt, Goal, Result) :-
+     reset(Goal, Ball, Cont),
+     p_cont(Cont, Ball, Prompt, Result).
+
+  p_cont(0, _, _, done) :- !.
+  p_cont(Cont, Prompt-Signal, Prompt, susp(Signal, Cont)) :- !.
+  p_cont(Cont, Prompt1-Signal1, Prompt, Result) :-
+     shift(Prompt1-Signal1),
+     p_reset(Prompt, Cont, Result).
+
+  p_shift(Prompt, Signal) :- shift(Prompt-Signal).
+\end{prolog-framed}
+Here, "Prompt" is a separate argument to both "p_reset/3" and "p_shift/3", and must be a
+ground term. The result of the call to "reset/3" on line 6 is dealt with by "p_cont/4": if "Goal" succeeded normally,
+then "Result" is set to "done"; if there was a "p_shift", then the resulting
+"Ball" is handled by matching the prompt to which it was addressed with the prompt associated with
+this call to "p_reset/3". If they unify, then "Result" is set to "susp(Signal, Cont)",
+indicating to the caller of "p_reset/3" that "Goal" was interrupted with the given signal
+and capturing the given continuation (which does \emph{not} include a surrounding prompt).
+If the prompts are not equal, then "shift/1" is called again, rather like rethrowing an exception,
+but, crucially, immediately after this call to "shift/1", the continuation captured by the
+inner "p_reset/3" is called inside a new instance of the inner prompt. This has the effect that
+the continuation captured by the outer prompt contains, at the point of reaching this inner
+continuation, a restoration of the inner prompt.
+
+As an effort to draw parallels between the Prolog and functional implementations of delimited
+control, the module also contains "pr_reset/3" and "pr_shift/2", which build on "p_reset/3" and "p_shift/2".
+Instead of the "Goal" argument of "p_reset/3", "pr_reset/3" accepts a unary predicate "Pred", which is
+called with a single unbound argument, as in "call(Pred, X)", and plays the role of the thunk
+|f : unit -> 'a| taken by |push_prompt| in the OCaml library. Instead of the passive "Signal" term
+taken by "p_shift/2", "pr_shift/2" takes a term "Handler" which is called as
+a binary predicate "call(Handler,K,X)", where "K" represents the continuation as a unary predicate 
+and "X" is unbound and will be the final answer returned by "pr_reset/3" in its third argument.
+\begin{prolog-framed}[name=delimcc, firstnumber=16]
+  :- meta_predicate pr_reset(+,1,-).
+  pr_reset(Prompt, Pred, Result) :-
+     p_reset(Prompt, call(Pred, X), Status),
+     pr_cont(Status, Prompt, X, Result).
+
+  pr_cont(done, _, X, X).
+  pr_cont(susp(Handler, Cont), Prompt, X, Result) :-
+     pr_reset(Prompt, call(Handler, delimcc:(\X^Cont)), Result).
+
+  :- meta_predicate pr_shift(+,2).
+  pr_shift(Prompt, Handler) :- shift(Prompt-Handler).
+\end{prolog-framed}
+Note that the raw continuation "Cont" is expressed as a unary predicate 
+by using a lambda abstraction "\X^Cont", which turns the output variable "X" into a parameter,
+and introduces exactly the right copying semantics to allow the continuation to be
+called multiple times without the interference that could be caused by the possible
+binding of variables inside the original continuation term "Cont".
+
+\section{State handling using delimited control}
+
+State is often handled in Prolog by using two extra arguments to pass the state in and out
+of all predicates that need to manipulate it. This has the advantage of maintaining the 
+declarative semantics of the program, but done manually, it can become tedious and
+error prone. The \emph{definite clause grammar}, or DCG syntax \cite{PereiraWarren1980}
+recognised by most Prologs makes this much easier by hiding the extra arguments---they are inserted and
+threaded through all gaols automatically when source files containing DCG notation
+are read. However, using DCG syntax in this way requires that all the code be lifted into DCG form
+even if many parts do not need to manipulate the state. Delimited continuations allow statefulness
+to be provided as a computation effect \emph{within} the delimited context, but to appear pure
+(like a DCG) from outside the context. \cite{SchrijversDemoenDesouter2013} use state handling
+as one of their examples, and we will use a similar approach here, but using the multi-prompt
+control predicates introduced in the previous section to allow the safe nesting of state handling
+contexts within each other or other effect handlers. The module "ccstate" provides backtrackable
+state within the "run_state/3" handler:
+\begin{prolog-framed}[name=ccstate]
+  :- module(ccstate, [run_state/3, run_state/4, 
+											get/1, set/1, app/2, upd/2, app/1]).
+  :- use_module(library(delimcc)).
+
+  :- meta_predicate app(2), app(+,2).
+  get(S)     :- p_shift(state, get(S)).
+  set(S)     :- p_shift(state, set(S)).
+  app(Pr,P)  :- p_shift(Pr,app(P)).
+  upd(S1,S2) :- app(upd(S1,S2)).
+  app(P)     :- app(state,P).
+
+  upd(S1,S2,S1,S2).
+
+  :- meta_predicate run_state(0,+,-), run_state(+,0,+,-),
+                    run_nb_state(0,+,-), run_nb_ref(0).
+
+  run_state(Goal) --> run_state(state, Goal).
+  run_state(Prompt, Goal) -->
+     {p_reset(Prompt, Goal, Status)},
+     cont_state(Status, Prompt).
+
+  cont_state(done,_) --> [].
+  cont_state(susp(R,Cont), Prompt) --> handle_state(R), run_state(Prompt, Cont).
+
+  handle_state(get(S),S,S).
+  handle_state(set(S),_,S).
+  handle_state(app(P),S1,S2) :- call(P,S1,S2).
+\end{prolog-framed}
+The predicates "get/1", "set/1", "upd/2" and "app/{1,2}" provide state manipulation as a
+computational effect in direct style, The predicates "run_state/{3,4}" reify this effect
+as a DCG, that is they make stateful effects inside the given goal look like the result
+of a pure DCG, with the last two arguments to "run_state" carrying the initial and final
+states.
+
+This interface provides access to a single `blob' of mutable state, but it is quite 
+straightforward to build on top of it an effect handler than instead provides an 
+unbounded supply of mutable references which can then be manipulated independently:
+\begin{prolog-framed}[name=ccstate]
+	:- meta_predicate run_ref(0), ref_app(+,2).
+	:- use_module(library(data/store)).
+	run_ref(Goal) :-
+		 store_new(S),
+		 run_state(ref, Goal, S, _).
+
+	ref_new(X,R) :- app(ref, store_add(X,R)).
+	ref_get(R,X) :- app(ref, store_get(R,X)).
+	ref_set(R,X) :- app(ref, store_set(R,X)).
+	ref_app(R,P) :- app(ref, store_apply(R,P)).
+	ref_upd(R,X,Y) :- app(ref, store_upd(R,X,Y)).
+\end{prolog-framed}
+The library "data/store" is provided by the SWI Prolog add-on package "genutils"
+and is a pure implementation of a key-value store using immutable tree data structures.
+
+\section{Memoisation functional style}
+
+The facilities described so far are just enough to implement memoisation as a 
+direct port of the functional, continuation-based approach implemented monadically
+in OCaml by \cite{Abdallah2017a}, which was in turn based on \citepos{Johnson1995}
+explicit CPS approach. It supports the memoisation of binary predicates (with one input
+and one output), which may be recursive or indeed left-recursive. Nondeterminism is
+invoked using "choose/2", implemented by the continuation handler "choose/4", and
+finally represented as a list of alternative results.
+\begin{prolog-framed}[name=ccstate]
+  :- module(ccmemo, [run_list/2, choose/2, guard/1,
+                     memo_nondet/3, memo_nondet/2]).
+
+  :- use_module(library(rbutils)).
+  :- use_module(library(typedef)).
+  :- use_module(library(delimcc), [pr_reset/3, pr_shift/2]).
+  :- use_module(library(ccstate), [ref_new/2, ref_get/2, ref_app/2, ref_upd/3]).
+  :- use_module('../lambdaki').
+
+  :- meta_predicate memo_nondet(2,-), memo_nondet(2,-,-).
+  memo_nondet(P,Q) :- memo_nondet(P,Q,_).
+  memo_nondet(P, ccmemo:memf(P,R), ccmemo:memdump(R)) :-
+     rb_empty(T),
+     ref_new(T,R).
+
+  memdump(R,Memo) :-
+     ref_get(R,T),
+     rb_visit(T,Pairs),
+     maplist(\ (K-entry(Vals,_))^(K-Vals)^true, Pairs,Memo).
+
+  memf(P,R,X,Y) :- pr_shift(nondet, mem(P,R,X,Y)).
+  choose(Xs,X) :- pr_shift(nondet, choose(Xs,X)).
+
+  :- meta_predicate guard(0).
+  guard(P) :- call(P) -> true; choose([],_).
+
+  :- meta_predicate run_list(1,-).
+  run_list(P,Result) :- pr_reset(nondet, to_list(P), Result).
+  to_list(P,[X]) :- call(P,X).
+
+  choose(Xs,X,K,Ys) :- foldl(app_expand(\X^K),Xs,[],Ys).
+
+  mem(P,R,X,Y,K,Ans) :-
+     YK = \Y^K,
+     ref_upd(R,Tab,Tab1),
+     (  rb_trans(X, entry(Ys,Conts), entry(Ys,[YK|Conts]), Tab, Tab1)
+     -> rb_fold(app_expand_fst(YK),Ys,[],Ans)
+     ;  rb_empty(EmptySet),
+        rb_insert_new(Tab, X, entry(EmptySet,[]), Tab1),
+        call(P,X,YNew),
+        ref_app(R, rb_trans(X, entry(Ys,Conts), entry(Ys2,Conts))),
+        (  rb_insert_new(Ys,YNew,t,Ys2)
+        -> foldl(app_send_to_cont(YNew), [YK|Conts], [], Ans)
+        ;  Ans=[], Ys2=Ys
+        )
+     ).
+
+  app_expand_fst(Ky,Y-_,A1,A2) :- app_expand(Ky,Y,A1,A2).
+  app_send_to_cont(Y,Ky,A1,A2) :- app_expand(Ky,Y,A1,A2).
+  app_expand(Ky,Y,A1,A2) :- call_cont(Ky,Y,A), append(A1,A,A2).
+  call_cont(Ky,Y,A) :- pr_reset(nondet, call(Ky,Y), A).
+\end{prolog-framed}
+
+\section{Non-backtrackable state}
+Prolog's built-in nondeterminism complicates the handling of state in comparison
+with functional languages. When using a DCG to handle state, or the above
+"run_state" effect handler, a failure results in backtracking and an undoing of
+any state changes along the failed path. An alternative, which can be useful in
+some cases, not least tabling, is to preserve state changes on backtracking.
+In pure functional languages such as Haskell, both statefulness and nondetermism
+have to be modelled explicity, for example, using monad transformers
+\cite{LiangHudakJones1995}, and as a result, the
+programmer has control over how the effects are combined. Whether or not state is
+shared across branches of a computation is determined simply by the order in which
+the monad transformers for state and nondeterminism are composed, and in both cases,
+the resulting structure can be given a declarative reading. In Prolog, nondeterminsm
+is built in and the only way to maintain state over backtracking is to use
+impure features of the language. However, using delimited control, we can hide most
+of this impurity and restore, to an extent, a declarative reading.
+\begin{prolog-framed}[name=ccstate]
+  run_nb_state(Goal, S1, S2) :-
+     gensym(nbs,Key),
+     setup_call_cleanup( nb_setval(Key, S1),
+                         (run_nb_state_x(Goal, Key), nb_getval(Key, S2)),
+                         nb_delete(Key)).
+
+  run_nb_state_x(Goal, Key) :-
+     p_reset(state, Goal, Status),
+     cont_nb_state(Status, Key).
+
+  cont_nb_state(done, _).
+  cont_nb_state(susp(P,Cont), Key) :-
+     handle_nb_state(P,Key), run_nb_state_x(Cont, Key).
+
+  handle_nb_state(get(S),Key) :- !, nb_getval(Key,S).
+  handle_nb_state(set(S),Key) :- !, nb_setval(Key,S).
+  handle_nb_state(app(P),Key) :- nb_getval(Key,S1), call(P,S1,S2),
+                                 nb_setval(Key,S2).
+\end{prolog-framed}
+In the handler "run_nb_state/3", the state is stored in single global mutable variable
+accessed via a constant key using "nb_setval/2", but this variable is well protected
+to prevent outside access or interference between different instances of the handler:
+the key is generated by the unique symbol creating predicate "gensym/2" and, by
+using "setup_call_cleanup/3", the variable itself is guaranteed to be destroyed
+when "run_nb_state/3" exits for the last time.
+
+\section{Tabling with Prolog nondeterminism}
+
+\begin{prolog-framed}[name=cctable]
+  :- module(cctable, [run_tabled/1, run_tabled/2, cctabled/1]).
+
+  :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
+  :- use_module(library(ccstate), [run_nb_state/3, set/1, get/1]).
+  :- use_module(library(rbutils)).
+  :- use_module(lambdaki).
+
+
+  :- meta_predicate cctabled(0).
+  cctabled(Head) :- p_shift(tab, Head).
+
+  :- meta_predicate run_tabled(0), run_tabled(0,-).
+  run_tabled(Goal) :- run_tabled(Goal,_).
+  run_tabled(Goal, FinalTables) :-
+     rb_empty(Tables),
+     term_variables(Goal, Ans),
+     run_nb_state(run_tab(Goal, Ans), Tables, FinalTables).
+
+  head_to_variant(Head, Variant) :-
+     copy_term_nat(Head, Variant),
+     numbervars(Variant, 0, _).
+
+  run_tab(Goal, Ans) :-
+     p_reset(tab, Goal, Status),
+     cont_tab(Status, Ans).
+
+  cont_tab(done, _).
+  cont_tab(susp(Head, Cont), Ans) :-
+     term_variables(Head,Y), K= \Y^Ans^Cont,
+     get(Tabs1),
+     head_to_variant(Head, Variant),
+     (  rb_update(Tabs1, Variant, tab(Solns,Ks), tab(Solns,[K|Ks]), Tabs2)
+     -> set(Tabs2),
+        rb_gen(Y, _, Solns),
+        run_tab(Cont, Ans)
+     ;  rb_empty(Solns),
+        rb_insert_new(Tabs1, Variant, tab(Solns,[]), Tabs2),
+        set(Tabs2),
+        run_tab(producer(Variant, \Y^Head, K, Ans), Ans)
+     ).
+
+  producer(Variant, Generate, KP, Ans) :-
+     call(Generate, Y1),
+     get(Tabs1),
+     rb_update(Tabs1, Variant, tab(Solns1, Ks), tab(Solns2, Ks), Tabs2),
+     rb_insert_new(Solns1, Y1, t, Solns2),
+     set(Tabs2),
+     member(K,[KP|Ks]),
+     call(K,Y1,Ans).
+\end{prolog-framed}
+
 \section{Conclusions}
+
 

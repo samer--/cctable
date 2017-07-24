@@ -12,40 +12,40 @@
   identifierstyle=\itshape, emphstyle=\itshape,
   % identifierstyle=\itshape, emphstyle=\upshape,
   % identifierstyle=\upshape, emphstyle=\itshape,
-	commentstyle=\color{Comment}\bfseries,
+   commentstyle=\color{Comment}\bfseries,
   emph={X,Y,Z,M,N,N1,N2,I1,I2,P,P1,P2,L},
   morekeywords={table,false,no,yes,ground},
-  deletekeywords={statistics,repeat,pp,is,sh},
+  deletekeywords={statistics,repeat,pp,is,sh,Prompt},
   literate={==>}{{$\Rightarrow$ }}2
            {<=>}{{$\Leftrightarrow$ }}2
            {->}{{$\rightarrow$ }}2
            {-->}{{$\longrightarrow$ }}3
-					 {~}{{$\sim$ }}1
+           {~}{{$\sim$ }}1
            {|}{{$| $}}1
            % {:-}{{$:\!\!-$ }}2
   }
 
 
 \lstnewenvironment{prolog-barred} {\lstset{%
-  basicstyle=\ttfamily\small,
-  identifierstyle=\upshape, 
-	emphstyle=\mdseries,
-	% backgroundcolor=\color{ListingBG},
-	commentstyle=\mdseries,
-	frame=leftline,
-	framerule=0.4em,
-	rulecolor=\color{ListingBar},
-	framesep=1em,
-	framexleftmargin=0em,
-  mathescape=true,
-  language=prolog,
-  columns=spaceflexible,
-  % aboveskip=0.75em,
-  % belowskip=0.75em,
-  xleftmargin=1.2em,
-  xrightmargin=1.2em,
-  tabsize=2,
-  gobble=2
+   basicstyle=\ttfamily\small,
+   identifierstyle=\upshape, 
+   emphstyle=\mdseries,
+   % backgroundcolor=\color{ListingBG},
+   commentstyle=\mdseries,
+   frame=leftline,
+   framerule=0.4em,
+   rulecolor=\color{ListingBar},
+   framesep=1em,
+   framexleftmargin=0em,
+   mathescape=true,
+   language=prolog,
+   columns=spaceflexible,
+   % aboveskip=0.75em,
+   % belowskip=0.75em,
+   xleftmargin=1.2em,
+   xrightmargin=1.2em,
+   tabsize=2,
+   gobble=2
   }} {}
 
 \lstnewenvironment{prolog} {\lstset{%
@@ -53,7 +53,7 @@
   language=prolog,
   columns=spaceflexible,
   morekeywords={false,ground},
-  deletekeywords={statistics,repeat,pp,is,sh,EM,time},
+  deletekeywords={statistics,repeat,pp,is,sh,EM,time,Prompt},
   aboveskip=0.75em,
   belowskip=0.75em,
   xleftmargin=1.5em,
@@ -66,18 +66,18 @@
   language=prolog,
   columns=spaceflexible,
   morekeywords={false,ground},
-  deletekeywords={statistics,length,repeat,pp,is,sh,EM,time},
+  deletekeywords={statistics,length,repeat,pp,is,sh,EM,time,tab,prompt},
   frame=lines,
-  aboveskip=0.75em,
-  belowskip=0.75em,
+  aboveskip=1.0em,
+  belowskip=1.0em,
   xleftmargin=0em,
   xrightmargin=0em,
   tabsize=2,
   gobble=2,
-	numbers=left,
-	firstnumber=auto,
+  numbers=left,
+  firstnumber=auto,
   numberstyle=\small\color{Comment},
-	#1
+  #1
   }} {}
 
-\lstMakeShortInline[language=Prolog,deletekeywords={repeat}]"
+\lstMakeShortInline[language=Prolog,deletekeywords={repeat,prompt}]"

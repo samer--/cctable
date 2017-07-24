@@ -1,0 +1,67 @@
+\usepackage{listings}
+% \usepackage{stmaryrd}
+
+\definecolor{ListingBar}{rgb}{0.8,0.8,0.8}
+\lstnewenvironment{ocaml} {\lstset{language=[Objective]Caml,
+	columns=spaceflexible,
+	frame=lines,
+	aboveskip=0.75em,
+	belowskip=0.75em}} {}
+\lstnewenvironment{ocamlet} {\lstset{language=[Objective]Caml,columns=spaceflexible,xleftmargin=1.2em}} {}
+\lstnewenvironment{badocaml} {\lstset{
+	frame=leftline,
+	framesep=0.9em,
+	framerule=0.3em,
+	xleftmargin=1.2em,
+	columns=spaceflexible,
+	rulecolor=\color{ListingBar},
+	language=[Objective]Caml
+	}} {}
+\lstnewenvironment{ocaml-tt} {\lstset{language=[Objective]Caml,
+  basicstyle=\ttfamily\small,
+	emphstyle=\mdseries,
+	keywordstyle=\bfseries,
+  identifierstyle=\upshape, 
+	columns=spaceflexible,
+	% framesep=0.5em,
+	% xleftmargin=0.1em,
+	% xleftmargin=1.2em,
+	frame=single,
+	aboveskip=0.75em,
+	belowskip=0.75em}} {}
+
+\lstset{%
+  language=[Objective]Caml,
+  basicstyle=\rmfamily,
+  identifierstyle=\itshape,
+	commentstyle=\sffamily\itshape\color{DarkRed},
+	keywordstyle=\sffamily\bfseries,
+  tabsize=2,
+  columns=fullflexible, 
+  keepspaces=true,
+	% xleftmargin=1.2em,
+  gobble=2,
+	literate={'a}{{$\alpha$}}1{'b}{{$\beta$}}1{'w}{{$\omega$}}1
+%                {+}{{$+$}}1 {/}{{$/$}}1 
+% 							 {\}}{]}1 {\{}{[}1
+% 							 {\}\}}{\}}1 {\{\{}{\{}1
+% 							 {\{\}}{[\,]}2
+%                [*]{\ *\ }{{ $\times$ }}3
+%                {**}{{$\circ$}}1
+%                {=}{{$=$}}1 
+%                {<>}{{$\neq$}}1 {>}{{$>$}}1 {<}{{$<$}}1 
+%                {++}{{$+\!\!\!+$}}1 {::}{{$::$}}1
+%                % {\\\\}{{\char`\\\char`\\}}1
+               {->}{{$\rightarrow$}}2 {>=}{{$\geq$}}2 {<-}{{$\leftarrow$}}2
+%                {<=}{{$\leq$}}2 {=>}{{$\Rightarrow$}}2
+%                {<<}{{$\ll$}}2 {>>}{{$\gg$}}2 {>>=}{{$\gg\!\!=$}}2
+%                {*>}{{$*\!\!\!>$}}2 {<|>}{{$<\!\!\!|\!\!\!>$}}3
+%                % {*>}{{$*\!\!\!>$}}2 {<|>}{{$\obar$}}2
+%                % {<*>}{{$\varoast$}}2 {<+>}{{$\varoplus$}}2
+%                {<*>}{{$<\!\!\!*\!\!\!>$}}2 {<+>}{{$<\!\!\!\!+\!\!\!\!>$}}2
+%                % {|}{{$\mid$}}1
+%                % {undefined}{{$\bot$}}1
+%                {not\ }{{$\neg$}}1 {epsilon}{{$\epsilon$}}1
+%                % {`elem`}{{$\in$}}1
+%                % {forall}{{$\forall$}}1
+  }
