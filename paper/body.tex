@@ -46,7 +46,9 @@ If, inside |f|, there is a call to |shift p h|, the
 continuation up to the nearest instance of |push_prompt p| is captured as a function |k : 'b -> 'a|, and passed to the handler
 |h|, which must return a value of type |'a|. The captured continuation includes an implict
 enclosing |push_prompt p|, which means that it looks, from the outside,
-like a pure function, and can be called zero, once, or many times.
+like a pure function, and can be called zero, once, or many times. During a call to the handler |h|,
+the original outer prompt stays in place, so that any calls to |shift p| made by the handler do not
+escape the original delimited context.
 
 \citepos{SchrijversDemoenDesouter2013} implementation of delimited continuations for Prolog provides two
 primitives, "reset/3" and "shift/1". If a Prolog goal is called as "reset(Goal, Ball, Cont)", with both
@@ -85,7 +87,7 @@ raised.
 
 In order to implemented multi-prompt delimited control without using the partially instantiated
 "Ball" feature, we will begin with a module "delimcc" that implements nested delimited contexts
-correctly on top of the "reset/3" and "shift/1" interface, but exposing an explict first class prompt
+correctly on top of the "reset/3" and "shift/1" interface, by exposing an explict first class prompt
 as in \citepos{DyvbigJonesSabry2005} and \citepos{Kiselyov2012} libraries. 
 (Supporting modules can be found in the appendix.)
 \begin{prolog-framed}[name=delimcc]
@@ -118,7 +120,7 @@ inner "p_reset/3" is called inside a new instance of the inner prompt. This has 
 the continuation captured by the outer prompt contains, at the point of reaching this inner
 continuation, a restoration of the inner prompt.
 
-As an effort to draw parallels between the Prolog and functional implementations of delimited
+With the aim of drawing a closer parallels between the Prolog and functional implementations of delimited
 control, the module also contains "pr_reset/3" and "pr_shift/2", which build on "p_reset/3" and "p_shift/2".
 Instead of the "Goal" argument of "p_reset/3", "pr_reset/3" accepts a unary predicate "Pred", which is
 called with a single unbound argument, as in "call(Pred, X)", and plays the role of the thunk
@@ -134,25 +136,33 @@ and "X" is unbound and will be the final answer returned by "pr_reset/3" in its 
 
   pr_cont(done, _, X, X).
   pr_cont(susp(Handler, Cont), Prompt, X, Result) :-
-     pr_reset(Prompt, call(Handler, delimcc:(\X^Cont)), Result).
+     pr_reset(Prompt, call(Handler, delimcc:pr_reset(Prompt, \X^Cont)), Result).
 
   :- meta_predicate pr_shift(+,2).
-  pr_shift(Prompt, Handler) :- shift(Prompt-Handler).
+  pr_shift(Prompt, Handler) :- p_shift(Prompt, Handler).
 \end{prolog-framed}
-Note that the raw continuation "Cont" is expressed as a unary predicate 
-by using a lambda abstraction "\X^Cont", which turns the output variable "X" into a parameter,
+Note that, before being passed to the handler, the raw continuation "Cont" is wrapped in its
+own delimited context
+% , insulating the caller from any computational effects relying on the
+% associated "Prompt" that may be used inside it, 
+and expressed as a unary predicate by using a lambda abstraction "\X^Cont", which turns the 
+output variable "X" into a parameter,
 and introduces exactly the right copying semantics to allow the continuation to be
 called multiple times without the interference that could be caused by the possible
-binding of variables inside the original continuation term "Cont".
+binding of variables inside the original continuation term "Cont". Together these have the
+effect of making the continuation look pure from the outside. Note also that the handler
+is called inside a delimited context and so may use computational effects too, just as
+in the functional version of |shift|.
 
 \section{State handling using delimited control}
 
-State is often handled in Prolog by using two extra arguments to pass the state in and out
-of all predicates that need to manipulate it. This has the advantage of maintaining the 
-declarative semantics of the program, but done manually, it can become tedious and
+Stateful computations are sometimes handled in Prolog by using two extra arguments to pass the state in and out
+of all predicates that need to manipulate it. This has the advantage of preserving a  
+declarative reading of the program, without resorting to a procedural reading involving side effects, but done 
+manually, it can become tedious and
 error prone. The \emph{definite clause grammar}, or DCG syntax \cite{PereiraWarren1980}
 recognised by most Prologs makes this much easier by hiding the extra arguments---they are inserted and
-threaded through all gaols automatically when source files containing DCG notation
+threaded through all goals automatically when source files containing DCG notation
 are read. However, using DCG syntax in this way requires that all the code be lifted into DCG form
 even if many parts do not need to manipulate the state. Delimited continuations allow statefulness
 to be provided as a computation effect \emph{within} the delimited context, but to appear pure
@@ -162,121 +172,158 @@ control predicates introduced in the previous section to allow the safe nesting 
 contexts within each other or other effect handlers. The module "ccstate" provides backtrackable
 state within the "run_state/3" handler:
 \begin{prolog-framed}[name=ccstate]
-  :- module(ccstate, [run_state/3, run_state/4, 
-											get/1, set/1, app/2, upd/2, app/1]).
+  :- module(ccstate, [run_state/4, app/2]).
   :- use_module(library(delimcc)).
 
-  :- meta_predicate app(2), app(+,2).
-  get(S)     :- p_shift(state, get(S)).
-  set(S)     :- p_shift(state, set(S)).
+  :- meta_predicate app(+,2).
   app(Pr,P)  :- p_shift(Pr,app(P)).
-  upd(S1,S2) :- app(upd(S1,S2)).
-  app(P)     :- app(state,P).
 
-  upd(S1,S2,S1,S2).
+  :- meta_predicate run_state(+,0,?,?).
+  run_state(Pr, Goal, S1, S2) :- 
+     p_reset(Pr, Goal, Status), 
+     cont_state(Status, Pr, S1, S2).
 
-  :- meta_predicate run_state(0,+,-), run_state(+,0,+,-),
-                    run_nb_state(0,+,-), run_nb_ref(0).
-
-  run_state(Goal) --> run_state(state, Goal).
-  run_state(Prompt, Goal) -->
-     {p_reset(Prompt, Goal, Status)},
-     cont_state(Status, Prompt).
-
-  cont_state(done,_) --> [].
-  cont_state(susp(R,Cont), Prompt) --> handle_state(R), run_state(Prompt, Cont).
-
-  handle_state(get(S),S,S).
-  handle_state(set(S),_,S).
-  handle_state(app(P),S1,S2) :- call(P,S1,S2).
+  cont_state(done, _, S, S).
+  cont_state(susp(app(P),Cont), Pr, S1, S3) :- 
+    call(P, S1, S2), 
+    run_state(Pr, Cont, S2, S3).
 \end{prolog-framed}
-The predicates "get/1", "set/1", "upd/2" and "app/{1,2}" provide state manipulation as a
-computational effect in direct style, The predicates "run_state/{3,4}" reify this effect
-as a DCG, that is they make stateful effects inside the given goal look like the result
-of a pure DCG, with the last two arguments to "run_state" carrying the initial and final
+The predicate "app/2" provide state manipulation (using an arbitrary binary predicate
+to model a state transition) as a
+computational effect in direct style. The predicate "run_state/4" reifies this effect
+as a predicate, that is, it makes stateful effects inside the given goal look like the result
+of a pure predicate from the outside, with the last two arguments carrying the initial and final
 states.
 
-This interface provides access to a single `blob' of mutable state, but it is quite 
+This interface provides access to a single `blob' of state, but it is quite 
 straightforward to build on top of it an effect handler than instead provides an 
-unbounded supply of mutable references which can then be manipulated independently:
+unbounded supply of references to mutable cells, which can then be manipulated independently:
 \begin{prolog-framed}[name=ccstate]
 	:- meta_predicate run_ref(0), ref_app(+,2).
 	:- use_module(library(data/store)).
-	run_ref(Goal) :-
-		 store_new(S),
-		 run_state(ref, Goal, S, _).
+	run_ref(Goal) :- store_new(S), run_state(ref, Goal, S, _).
 
-	ref_new(X,R) :- app(ref, store_add(X,R)).
-	ref_get(R,X) :- app(ref, store_get(R,X)).
-	ref_set(R,X) :- app(ref, store_set(R,X)).
-	ref_app(R,P) :- app(ref, store_apply(R,P)).
+	ref_new(X,R)   :- app(ref, store_add(X,R)).
+	ref_get(R,X)   :- app(ref, store_get(R,X)).
+	ref_set(R,X)   :- app(ref, store_set(R,X)).
+	ref_app(R,P)   :- app(ref, store_apply(R,P)).
 	ref_upd(R,X,Y) :- app(ref, store_upd(R,X,Y)).
 \end{prolog-framed}
-The library "data/store" is provided by the SWI Prolog add-on package "genutils"
-and is a pure implementation of a key-value store using immutable tree data structures.
+The library "data/store" is included in the SWI Prolog add-on package "genutils"
+and provides a pure, declarative implementation of a key-value store using immutable tree data structures.
 
 \section{Memoisation functional style}
 
 The facilities described so far are just enough to implement memoisation as a 
-direct port of the functional, continuation-based approach implemented monadically
+reasonably direct port of the functional, continuation-based approach implemented monadically
 in OCaml by \cite{Abdallah2017a}, which was in turn based on \citepos{Johnson1995}
 explicit CPS approach. It supports the memoisation of binary predicates (with one input
 and one output), which may be recursive or indeed left-recursive. Nondeterminism is
 invoked using "choose/2", implemented by the continuation handler "choose/4", and
-finally represented as a list of alternative results.
-\begin{prolog-framed}[name=ccstate]
-  :- module(ccmemo, [run_list/2, choose/2, guard/1,
-                     memo_nondet/3, memo_nondet/2]).
+finally represented as a list of alternative results. (Library "rbutils" is part of the "genutils"
+add-on package mentioned earlier, and provides tools for maniplating associative maps
+in the form of red-black trees.)
+\begin{prolog-framed}[name=ccmemo]
+  :- module(ccmemo, [run_nondet/2, choose/2, memo_nondet/2]).
 
   :- use_module(library(rbutils)).
-  :- use_module(library(typedef)).
-  :- use_module(library(delimcc), [pr_reset/3, pr_shift/2]).
-  :- use_module(library(ccstate), [ref_new/2, ref_get/2, ref_app/2, ref_upd/3]).
-  :- use_module('../lambdaki').
+  :- use_module(library(delimcc)).
+  :- use_module(library(ccstate)).
+  :- use_module(lambdaki).
 
-  :- meta_predicate memo_nondet(2,-), memo_nondet(2,-,-).
-  memo_nondet(P,Q) :- memo_nondet(P,Q,_).
-  memo_nondet(P, ccmemo:memf(P,R), ccmemo:memdump(R)) :-
+  :- meta_predicate memo_nondet(2,-).
+  memo_nondet(P, ccmemo:mem_call(P,R)) :-
      rb_empty(T),
      ref_new(T,R).
 
-  memdump(R,Memo) :-
-     ref_get(R,T),
-     rb_visit(T,Pairs),
-     maplist(\ (K-entry(Vals,_))^(K-Vals)^true, Pairs,Memo).
+  mem_call(P,R,X,Y) :- pr_shift(nondet, h_mem(P,R,X,Y)).
+  choose(Xs,X) :- pr_shift(nondet, h_choose(Xs,X)).
 
-  memf(P,R,X,Y) :- pr_shift(nondet, mem(P,R,X,Y)).
-  choose(Xs,X) :- pr_shift(nondet, choose(Xs,X)).
-
-  :- meta_predicate guard(0).
-  guard(P) :- call(P) -> true; choose([],_).
-
-  :- meta_predicate run_list(1,-).
-  run_list(P,Result) :- pr_reset(nondet, to_list(P), Result).
+  :- meta_predicate run_nondet(1,-).
+  run_nondet(P,Result) :- pr_reset(nondet, to_list(P), Result).
   to_list(P,[X]) :- call(P,X).
 
-  choose(Xs,X,K,Ys) :- foldl(app_expand(\X^K),Xs,[],Ys).
+  h_choose(Xs,X,K,Ys) :- foldl(call_append(\X^K),Xs,[],Ys).
 
-  mem(P,R,X,Y,K,Ans) :-
-     YK = \Y^K,
+  h_mem(P,R,X,Y,K,Ans) :-
+     Ky = \Y^K,
      ref_upd(R,Tab,Tab1),
-     (  rb_trans(X, entry(Ys,Conts), entry(Ys,[YK|Conts]), Tab, Tab1)
-     -> rb_fold(app_expand_fst(YK),Ys,[],Ans)
+     (  rb_trans(X, entry(Ys,Conts), entry(Ys,[Ky|Conts]), Tab, Tab1)
+     -> rb_fold(fst_call_append(Ky),Ys,[],Ans)
      ;  rb_empty(EmptySet),
         rb_insert_new(Tab, X, entry(EmptySet,[]), Tab1),
         call(P,X,YNew),
         ref_app(R, rb_trans(X, entry(Ys,Conts), entry(Ys2,Conts))),
         (  rb_insert_new(Ys,YNew,t,Ys2)
-        -> foldl(app_send_to_cont(YNew), [YK|Conts], [], Ans)
+        -> foldl(flip_call_append(YNew), [Ky|Conts], [], Ans)
         ;  Ans=[], Ys2=Ys
         )
      ).
 
-  app_expand_fst(Ky,Y-_,A1,A2) :- app_expand(Ky,Y,A1,A2).
-  app_send_to_cont(Y,Ky,A1,A2) :- app_expand(Ky,Y,A1,A2).
-  app_expand(Ky,Y,A1,A2) :- call_cont(Ky,Y,A), append(A1,A,A2).
-  call_cont(Ky,Y,A) :- pr_reset(nondet, call(Ky,Y), A).
+  fst_call_append(Ky,Y-_,A1,A2) :- call_append(Ky,Y,A1,A2).
+  flip_call_append(Y,Ky,A1,A2) :- call_append(Ky,Y,A1,A2).
+  call_append(Ky,Y,A1,A2) :- call(Ky,Y,A), append(A1,A,A2).
 \end{prolog-framed}
+The context for running memoised nondeterministic computations is provided by "run_nondet/2", which
+installs a prompt named "nondet" and calls the supplied predicate "P" using wrapper "to_list/2", which
+returns the result of "P" in a (singleton) list. Nondeterminism is handled by "h_choose/4", which applies the
+continuation "K" to each item in the supplied list of alternatives "Xs", concatenating the lists of results
+produced by each application of the continuation. 
+
+A memoised version of a binary predicate is 
+prepared using "memo_nondet/2", which creates a new mutable reference containing the initially
+empty memo table for that predicate. Calling the memoised version results in a call to "mem_call/4", 
+which, in turn, invokes the continuation handler "h_mem/6". This works very much like the
+\citepos{Abdallah2017a} functional version: if the memoised predicate has already been applied to
+the input "X", then there will already be an entry in the memo table "Tab" (line 27), in which case the
+newly captured continuation, in the form of a two-argument lambda abstraction "Ky", is added to the 
+list of `consumer' continuations associated with "X", and the continuation predicate "Ky" is applied to all
+the results produced by the base predicate "P" so far (the list "Ys", line 29), collecting all the 
+final results in the list "Ans". If this is the first time the memoised predicate has been applied to 
+"X", then a new `producer' is initiated  by adding a new entry to the memo table (line 31), calling the base
+predicate "P", and, for each result "YNew", producing an empty answer list if "YNew" is 
+already in the results table (line 36) or sending "YNew" to all of the continuations waiting for the
+result of applying "P" to "X". The whole of the handler predicate "h_mem/6" is called inside a
+"nondet" prompt, so that any nondeterminism or memoisation effects triggered inside the call to "P" 
+(line 32) result in the following lines of code being executed multiple times and the answers being collected
+in the correct way.
+
+As an example of how this memoisation framework can be used, the following code illustrates a left-recursive
+predicate "path/2" which implements the transitive closure of "edge/2".
+\begin{prolog-framed}
+  :- use_module(ccmemo).
+
+  path_memo(Start, Ends) :-
+    memo_nondet(path(P), P),
+    run_nondet(call(P,Start), Ends).
+
+  path(P, N1, N3) :- 
+    choose([0,1],U), 
+    ( U=0 -> edge(N1,N3)
+    ; U=1 -> call(P,N1,N2), edge(N2,N3)
+    ).
+
+  edge(a,X) :- choose([b,c],X).
+  edge(b,d).
+  edge(c,d).
+  edge(d,X) :- choose([],X).
+\end{prolog-framed}
+The predicate "path_memo/2" must be called inside a context providing mutable references, \eg, as
+"run_ref(path_memo(Start, Ends))".
+A few observations on this code are in order. Firstly, "path/3" is written in \emph{open recursive} style;
+that is, rather than call itself directly when recursion is required, it calls the first argument "P", which
+is assumed to represent the memoised recursive path predicate. The recursion is tied-up without using
+an explicit fixed-point operator simply by memoising "path(P)" on line 7 and unifying the result with "P".
+The fact that this results in a cyclic term is not a problem. Secondly, all nondeterminism in the
+program, both in "edge/2" predicate and "path/3", must be represented using "choose/2",
+rather than using Prolog's built-in nondeterminism. This results in a rather non-idiomatic Prolog style, for
+example, we cannot simply omit the clause for "edge(d,_)" and rely on normal Prolog failure to indicate that there is no edge 
+from "d"; we must use "choose([],_)" to express this fact. Thirdly, although not a problem in this example,
+the restriction to memoising only binary `input-output' predicates does not fit well with the Prolog style
+of using arbitrary arity predicates without restrictions on which arguments may be considered
+`inputs' or `outputs'. In short, we have not really implemented \emph{Prolog} style tabling, but rather
+transplanted a functional idiom into Prolog. These deficiencies are remedied in the next section.
+
 
 \section{Non-backtrackable state}
 Prolog's built-in nondeterminism complicates the handling of state in comparison
