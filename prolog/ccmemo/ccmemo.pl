@@ -41,25 +41,25 @@ run_list(P,Result) :- pr_reset(nondet, to_list(P), Result).
 to_list(P,[X]) :- call(P,X).
 
 % choose(Xs:list(B),X:B): handler(list(A)).
-choose(Xs,X,K,Ys) :- foldl(app_expand(\X^K),Xs,[],Ys).
+choose(Xs,X,K,Ys) :- foldl(call_append(\X^K),Xs,[],Ys).
 
 %% mem(+P:pred(+B,-C), +R:ref(memo(B,C)), +X:B, @Y:C, +K:pred(-list(A)), -T:list(A)) is det.
 mem(P,R,X,Y,K,Ans) :-
    YK = \Y^K,
    ref_upd(R,Tab,Tab1),
    (  rb_trans(X, entry(Ys,Conts), entry(Ys,[YK|Conts]), Tab, Tab1)
-   -> rb_fold(app_expand_fst(YK),Ys,[],Ans)
+   -> rb_fold(fst_call_append(YK),Ys,[],Ans)
    ;  rb_empty(EmptySet),
       rb_insert_new(Tab, X, entry(EmptySet,[]), Tab1),
       call(P,X,YNew),
       ref_app(R, rb_trans(X, entry(Ys,Conts), entry(Ys2,Conts))),
       (  rb_insert_new(Ys,YNew,t,Ys2)
-      -> foldl(app_send_to_cont(YNew), [YK|Conts], [], Ans)
+      -> foldl(flip_call_append(YNew), [YK|Conts], [], Ans)
       ;  Ans=[], Ys2=Ys
       )
    ).
 
-app_expand_fst(Ky,Y-_,A1,A2) :- app_expand(Ky,Y,A1,A2).
-app_send_to_cont(Y,Ky,A1,A2) :- app_expand(Ky,Y,A1,A2).
-app_expand(Ky,Y,A1,A2) :- call_cont(Ky,Y,A), append(A1,A,A2).
-call_cont(Ky,Y,A) :- pr_reset(nondet, call(Ky,Y), A).
+fst_call_append(Ky,Y-_,A1,A2) :- call_append(Ky,Y,A1,A2).
+flip_call_append(Y,Ky,A1,A2) :- call_append(Ky,Y,A1,A2).
+call_append(Ky,Y,A1,A2) :- call(Ky,Y,A), append(A,A1,A2).
+
