@@ -33,6 +33,16 @@ test2(Y) :-
    choose([1,2,3],X),
    choose([a(X),b(X),c(X)],Y).
 
+fib(_,0,1).
+fib(_,1,1).
+fib(F,N,X) :-
+   succ(M,N), call(F,M,Y),
+   succ(L,M), call(F,L,Z),
+   plus(Y,Z,X).
+
+test_fib(N,X) :-
+   memo_nondet(fib(F),F), run_list(call(F,N), X).
+
 % ---- Recursive path finding ---------------------
 
 link(a,X) :- choose([b,c],X).
