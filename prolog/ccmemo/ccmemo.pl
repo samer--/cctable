@@ -47,12 +47,12 @@ choose(Xs,X,K,Ys) :- foldl(call_append(\X^K),Xs,[],Ys).
 mem(P,R,X,Y,K,Ans) :-
    YK = \Y^K,
    ref_upd(R,Tab,Tab1),
-   (  rb_trans(X, entry(Ys,Conts), entry(Ys,[YK|Conts]), Tab, Tab1)
+   (  rb_upd(X, entry(Ys,Conts), entry(Ys,[YK|Conts]), Tab, Tab1)
    -> rb_fold(fst_call_append(YK),Ys,[],Ans)
    ;  rb_empty(EmptySet),
       rb_insert_new(Tab, X, entry(EmptySet,[]), Tab1),
       call(P,X,YNew),
-      ref_app(R, rb_trans(X, entry(Ys,Conts), entry(Ys2,Conts))),
+      ref_app(R, rb_upd(X, entry(Ys,Conts), entry(Ys2,Conts))),
       (  rb_insert_new(Ys,YNew,t,Ys2)
       -> foldl(flip_call_append(YNew), [YK|Conts], [], Ans)
       ;  Ans=[], Ys2=Ys

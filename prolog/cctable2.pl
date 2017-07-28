@@ -8,9 +8,9 @@
 */
 
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
+:- use_module(library(ccnbenv), [run_nb_env/1, nb_app/2, nb_app_or_new/3]).
 :- use_module(library(rbutils)).
-:- use_module(ccnbenv, [run_nb_env/1, env_app/2, env_app_or_new/3]).
-:- use_module(lambdaki).
+:- use_module(library(lambdaki)).
 
 
 %% cctabled(+Head:callable) is det.
@@ -40,8 +40,8 @@ cont_tab(done, _).
 cont_tab(susp(Head, Cont), Ans) :-
    term_variables(Head,Y), K = \Y^Ans^Cont,
    head_to_variant(Head, Variant),
-   env_app_or_new(Variant, new_consumer(Res,K), new_producer(Res)),
-   (  Res = solns(Solns) -> rb_gen(Y, _, Solns), run_tab(Cont, Ans)
+   nb_app_or_new(Variant, new_consumer(Res,K), new_producer(Res)),
+   (  Res = solns(Solns) -> rb_in(Y, _, Solns), run_tab(Cont, Ans)
    ;  Res = new_producer -> run_tab(producer(Variant, \Y^Head, K, Ans), Ans)
    ).
 
@@ -50,8 +50,7 @@ new_producer(new_producer, tab(Solns,[])) :- rb_empty(Solns).
 
 producer(Variant, Generate, KP, Ans) :-
    call(Generate, Y),
-   env_app(Variant, new_soln(Y,Res)), Res = new(Ks),
+   nb_app(Variant, new_soln(Y,Ks)),
    member(K,[KP|Ks]), call(K,Y,Ans).
 
-new_soln(Y, new(Ks), tab(Ys1,Ks), tab(Ys2,Ks)) :- rb_add(Y,t,Ys1,Ys2), !.
-new_soln(_, old,     tab(Ys,Ks), tab(Ys,Ks)).
+new_soln(Y, Ks, tab(Ys1,Ks), tab(Ys2,Ks)) :- rb_add(Y,t,Ys1,Ys2).
