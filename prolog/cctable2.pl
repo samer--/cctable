@@ -8,8 +8,8 @@
 */
 
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
-:- use_module(library(ccstate), [run_nb_ref/1, nbr_app/2, nbr_app_or_new/3]).
 :- use_module(library(rbutils)).
+:- use_module(ccnbenv, [run_nb_env/1, env_app/2, env_app_or_new/3]).
 :- use_module(lambdaki).
 
 
@@ -26,7 +26,7 @@ cctabled(Head) :- p_shift(tab, Head).
 :- meta_predicate run_tabled(0).
 run_tabled(Goal) :-
    term_variables(Goal, Ans),
-   run_nb_ref(run_tab(Goal, Ans)).
+   run_nb_env(run_tab(Goal, Ans)).
 
 head_to_variant(Head, Variant) :-
    copy_term_nat(Head, Variant),
@@ -40,7 +40,7 @@ cont_tab(done, _).
 cont_tab(susp(Head, Cont), Ans) :-
    term_variables(Head,Y), K = \Y^Ans^Cont,
    head_to_variant(Head, Variant),
-   nbr_app_or_new(Variant, new_consumer(Res,K), new_producer(Res)),
+   env_app_or_new(Variant, new_consumer(Res,K), new_producer(Res)),
    (  Res = solns(Solns) -> rb_gen(Y, _, Solns), run_tab(Cont, Ans)
    ;  Res = new_producer -> run_tab(producer(Variant, \Y^Head, K, Ans), Ans)
    ).
@@ -49,12 +49,9 @@ new_consumer(solns(Solns), K, tab(Solns,Ks), tab(Solns,[K|Ks])).
 new_producer(new_producer, tab(Solns,[])) :- rb_empty(Solns).
 
 producer(Variant, Generate, KP, Ans) :-
-   call(Generate, Y1),
-   nbr_app(Variant, new_soln(Y1,Res)),
-   Res = new(Ks), member(K,[KP|Ks]), call(K,Y1,Ans).
+   call(Generate, Y),
+   env_app(Variant, new_soln(Y,Res)), Res = new(Ks),
+   member(K,[KP|Ks]), call(K,Y,Ans).
 
-new_soln(Y1, Res, tab(Solns1,Ks), tab(Solns2,Ks)) :-
-   rb_upd_or_ins(Y1, Action, Solns1, Solns2),
-   ( Action-Res = insert(t)-new(Ks)
-   ; Action-Res = update(t,t)-old
-   ).
+new_soln(Y, new(Ks), tab(Ys1,Ks), tab(Ys2,Ks)) :- rb_add(Y,t,Ys1,Ys2), !.
+new_soln(_, old,     tab(Ys,Ks), tab(Ys,Ks)).
