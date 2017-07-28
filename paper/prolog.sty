@@ -5,25 +5,29 @@
 
 % FROM PLP talk
 \lstset{%
-  language=prolog,
+  language=Prolog,
   columns=fullflexible,
   % basicstyle=\usefont{T1}{cmr}{m}{n},
   basicstyle=\sffamily,
   % keywordstyle=\bfseries\rmfamily,
+  keywordstyle=\rmfamily,
   identifierstyle=\itshape, emphstyle=\itshape,
   % identifierstyle=\itshape, emphstyle=\upshape,
   % identifierstyle=\upshape, emphstyle=\itshape,
    commentstyle=\color{Comment}\bfseries,
   emph={X,Y,Z,M,N,N1,N2,I1,I2,P,P1,P2,L},
-  morekeywords={table,false,no,yes,ground,module,meta_predicate},
-  deletekeywords={statistics,repeat,pp,is,sh,tab,Prompt},
+  morekeywords={table,false,no,yes,ground,module,meta_predicate,pred,type},
+  deletekeywords={statistics,length,repeat,pp,is,sh,EM,time,tab,prompt},
+  upquote=true,
   literate={==>}{{$\Rightarrow$ }}2
+           {S1}{{$S_1$}}2
+           {S2}{{$S_2$}}2
+           {S3}{{$S_3$}}2
            {<=>}{{$\Leftrightarrow$ }}2
            {->}{{$\rightarrow$ }}2
            {-->}{{$\longrightarrow$ }}3
            {~}{{$\sim$ }}1
            {|}{{$| $}}1
-           % {:-}{{$:\!\!-$ }}2
   }
 
 
@@ -53,10 +57,10 @@
   mathescape=true,
   language=prolog,
   columns=spaceflexible,
-  morekeywords={false,ground},
-  deletekeywords={statistics,repeat,pp,is,sh,EM,time,tab,Prompt},
-  aboveskip=0.75em,
-  belowskip=0.75em,
+  morekeywords={table,false,no,yes,ground,module,meta_predicate},
+	deletekeywords={ground},
+  aboveskip=1.00em,
+  belowskip=1.00em,
   xleftmargin=1.5em,
   tabsize=2,
   gobble=2
@@ -67,9 +71,9 @@
   language=prolog,
   columns=spaceflexible,
   % basicstyle=\sffamily,
-  % keywordstyle=\bfseries\rmfamily,
-  morekeywords={false,ground,module,meta_predicate},
-  deletekeywords={statistics,length,repeat,pp,is,sh,EM,time,tab,prompt},
+  keywordstyle=\bfseries\rmfamily,
+  morekeywords={table,false,no,yes,ground,module,meta_predicate},
+  deletekeywords={functor,name,statistics,length,repeat,pp,is,sh,EM,time,tab,prompt,numbervars},
   frame=lines,
   aboveskip=1.0em,
   belowskip=1.0em,
@@ -80,7 +84,26 @@
   numbers=left,
   firstnumber=auto,
   numberstyle=\small\color{Comment},
+  literate={==>}{{$\Rightarrow$ }}2
+           {Ys1}{{$\mathit{Ys}_1$}}3
+           {Ys2}{{$\mathit{Ys}_2$}}3
+           {A1}{{$A_1$}}2
+           {A2}{{$A_2$}}2
+           {A3}{{$A_3$}}2
+           {N1}{{$N_1$}}2
+           {N2}{{$N_2$}}2
+           {N3}{{$N_3$}}2
+           {S1}{{$S_1$}}2
+           {S2}{{$S_2$}}2
+           {S3}{{$S_3$}}2%
+           {&}{{\$}}1%
+           {<=>}{{$\Leftrightarrow$}}2%
+           {->}{{$\rightarrow$}}2%
+           {-->}{{$\longrightarrow$}}3%
+           {~}{{$\sim$ }}1%
+           {]}{{$\,$]}}1
+           {|}{{$\,|$}}3,
   #1
   }} {}
 
-\lstMakeShortInline[language=Prolog,deletekeywords={repeat,tab,prompt}]"
+\lstMakeShortInline[language=Prolog,upquote=true,deletekeywords={numbervars,assert,retract,repeat,tab,prompt}]"
