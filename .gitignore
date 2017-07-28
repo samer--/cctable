@@ -1,1 +1,6 @@
 .*.sw?
+*.aux
+*.blg
+*.log
+*.out
+.swipl_history.*
