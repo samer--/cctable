@@ -1,0 +1,171 @@
+\newcommand{\postscriptref}[1] {(\emph{see} \textbf{#1})}
+  \providecommand{\url}[1] {\texttt{#1}}
+\begin{thebibliography}{27}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Abdallah(2017)]{Abdallah2017a}
+S.~Abdallah.
+\newblock Memoisation: Purely, left-recursively, and with (continuation
+  passing) style.
+\newblock \emph{arXiv preprint arXiv:1707.04724}, 2017.
+
+\bibitem[Danvy and Filinski(1990)]{DanvyFilinski1990}
+O.~Danvy and A.~Filinski.
+\newblock Abstracting control.
+\newblock In \emph{Proceedings of the 1990 ACM conference on LISP and
+  functional programming}, pages 151--160. ACM, 1990.
+
+\bibitem[Desouter et~al.(2015)Desouter, Van~Dooren, and
+  Schrijvers]{DesouterVan-DoorenSchrijvers2015}
+B.~Desouter, M.~Van~Dooren, and T.~Schrijvers.
+\newblock Tabling as a library with delimited control.
+\newblock \emph{Theory and Practice of Logic Programming}, 15\penalty0
+  (4-5):\penalty0 419--433, 2015.
+
+\bibitem[Dyvbig et~al.(2005)Dyvbig, Jones, and Sabry]{DyvbigJonesSabry2005}
+R.~K. Dyvbig, S.~P. Jones, and A.~Sabry.
+\newblock A monadic framework for delimited continuations.
+\newblock Technical Report 615, Computer Science Department Indiana University,
+  2005.
+
+\bibitem[Earley(1970)]{Earley1970}
+J.~Earley.
+\newblock An efficient context-free parsing algorithm.
+\newblock \emph{Communications of the ACM}, 13\penalty0 (2):\penalty0 94--102,
+  1970.
+
+\bibitem[Felleisen(1988)]{Felleisen1988}
+M.~Felleisen.
+\newblock The theory and practice of first-class prompts.
+\newblock In \emph{Proceedings of the 15th ACM SIGPLAN-SIGACT symposium on
+  Principles of programming languages}, pages 180--190. ACM, 1988.
+
+\bibitem[Filinski(1999)]{Filinski1999}
+A.~Filinski.
+\newblock Representing layered monads.
+\newblock In \emph{Proceedings of the 26th ACM SIGPLAN-SIGACT symposium on
+  Principles of programming languages}, pages 175--188. ACM, 1999.
+
+\bibitem[Johnson(1995)]{Johnson1995}
+M.~Johnson.
+\newblock Memoization in top-down parsing.
+\newblock \emph{Computational Linguistics}, 21\penalty0 (3):\penalty0 405--417,
+  1995.
+
+\bibitem[Kiselyov(2012)]{Kiselyov2012}
+O.~Kiselyov.
+\newblock Delimited control in ocaml, abstractly and concretely.
+\newblock \emph{Theoretical Computer Science}, 435:\penalty0 56--76, 2012.
+
+\bibitem[Kiselyov and Shan(2009)]{KiselyovShan2009}
+O.~Kiselyov and C.-C. Shan.
+\newblock Embedded probabilistic programming.
+\newblock In \emph{Domain-specific languages}, pages 360--384. Springer, 2009.
+
+\bibitem[Liang et~al.(1995)Liang, Hudak, and Jones]{LiangHudakJones1995}
+S.~Liang, P.~Hudak, and M.~Jones.
+\newblock Monad transformers and modular interpreters.
+\newblock In \emph{Proceedings of the 22nd ACM SIGPLAN-SIGACT symposium on
+  Principles of programming languages}, pages 333--343. ACM, 1995.
+
+\bibitem[Lindgren(1994)]{Lindgren1994}
+T.~Lindgren.
+\newblock A continuation-passing style for {P}rolog.
+\newblock In \emph{SLP}, pages 603--617. Citeseer, 1994.
+
+\bibitem[Michie(1968)]{Michie1968}
+D.~Michie.
+\newblock Memo functions and machine learning.
+\newblock \emph{Nature}, 218\penalty0 (5136):\penalty0 19--22, 1968.
+
+\bibitem[Neumerkel(1995)]{Neumerkel1995}
+U.~Neumerkel.
+\newblock Continuation {P}rolog: A new intermediary language for {WAM} and
+  {BinWAM} code generation.
+\newblock In \emph{Post-ILPS'95 Workshop on Implementation of Logic Programming
+  Languages. F16G}, 1995.
+
+\bibitem[Neumerkel(2009)]{Neumerkel2009}
+U.~Neumerkel.
+\newblock Lambdas und {S}chleifen in monotonen {L}ogikprogrammen.
+\newblock In \emph{Kolloquium Programmiersprachen und Grundlagen der
+  Programmierung}, 2009.
+
+\bibitem[Norvig(1991)]{Norvig1991}
+P.~Norvig.
+\newblock Techniques for automatic memoization with applications to
+  context-free parsing.
+\newblock \emph{Computational Linguistics}, 17\penalty0 (1):\penalty0 91--98,
+  1991.
+
+\bibitem[Pereira and Warren(1980)]{PereiraWarren1980}
+F.~C. Pereira and D.~H. Warren.
+\newblock Definite clause grammars for language analysis---a survey of the
+  formalism and a comparison with augmented transition networks.
+\newblock \emph{Artificial intelligence}, 13\penalty0 (3):\penalty0 231--278,
+  1980.
+
+\bibitem[Porter(1986)]{Porter1986}
+H.~H. Porter.
+\newblock Earley deduction.
+\newblock Technical report, Oregon Graduate Center, 1986.
+
+\bibitem[Schrijvers et~al.(2008)Schrijvers, Costa, Wielemaker, and
+  Demoen]{SchrijversCostaWielemaker2008}
+T.~Schrijvers, V.~S. Costa, J.~Wielemaker, and B.~Demoen.
+\newblock Towards typed prolog.
+\newblock In \emph{International Conference on Logic Programming}, pages
+  693--697. Springer, 2008.
+
+\bibitem[Schrijvers et~al.(2013)Schrijvers, Demoen, Desouter, and
+  Wielemaker]{SchrijversDemoenDesouter2013}
+T.~Schrijvers, B.~Demoen, B.~Desouter, and J.~Wielemaker.
+\newblock Delimited continuations for {P}rolog.
+\newblock \emph{Theory and Practice of Logic Programming}, 2013.
+
+\bibitem[Shan(2004)]{Shan2004}
+C.-c. Shan.
+\newblock Shift to control.
+\newblock In \emph{Proceedings of the 5th workshop on Scheme and Functional
+  Programming}, pages 99--107, 2004.
+
+\bibitem[Sterling and Shapiro(1994)]{SterlingShapiro1994}
+L.~Sterling and E.~Y. Shapiro.
+\newblock \emph{The Art of Prolog: Advanced Programming Techniques}.
+\newblock MIT press, 1994.
+
+\bibitem[Sussman and Steele(1975)]{SussmanSteele1975}
+G.~J. Sussman and G.~L. Steele.
+\newblock Scheme: A interpreter for extended lambda calculus.
+\newblock AI Memo 349, 1975.
+
+\bibitem[Tamaki and Sato(1986)]{TamakiSato1986}
+H.~Tamaki and T.~Sato.
+\newblock {OLD} resolution with tabulation.
+\newblock In \emph{Third international conference on logic programming}, pages
+  84--98. Springer, 1986.
+
+\bibitem[Tarau and Dahl(1998)]{TarauDahl1998}
+P.~Tarau and V.~Dahl.
+\newblock Mobile threads through first order continuations.
+\newblock In \emph{{Proceedings of APPAI-GULP-PRODE'98}}, Coruna, Spain, July
+  1998.
+
+\bibitem[Tarau and Neumerkel(1994)]{TarauNeumerkel1994}
+P.~Tarau and U.~Neumerkel.
+\newblock A {N}ovel {T}erm {C}ompression {S}cheme and {D}ata {R}epresentation
+  in the {B}in{WAM}.
+\newblock In M.~Hermenegildo and J.~Penjam, editors, \emph{Proceedings of
+  Programming Language Implementation and Logic Programming}, number 844 in
+  Lecture Notes in Computer Science, pages 73--87. Springer, Sept. 1994.
+
+\bibitem[Warren(1975)]{Warren1975}
+D.~H. Warren.
+\newblock Earley deduction.
+\newblock \emph{Unpublished note}, 1975.
+
+\end{thebibliography}
