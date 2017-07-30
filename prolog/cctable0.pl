@@ -4,6 +4,10 @@
    This module provides a declarative implementation of tabling using delimited
    continuations to manage the state of the tables and to implement tabling
    itself.
+
+   The entire state is stored in one non-backtrackable global variable,
+   which is conceptually simple but terrible for performance because
+   the state is copied each time it is set.
 */
 
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
