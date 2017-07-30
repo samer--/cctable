@@ -1,4 +1,4 @@
-:- module(cctable, [run_tabled/1, run_tabled/2, cctabled/1]).
+:- module(cctable0, [run_tabled/1, run_tabled/2, cctabled/1]).
 /** <module> Tabling using multi-prompt delimited control
 
    This module provides a declarative implementation of tabling using delimited
