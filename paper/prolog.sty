@@ -2,34 +2,59 @@
 \definecolor{ListingBar}{rgb}{0.8,0.8,0.8}
 \definecolor{ListingBG}{rgb}{0.95,0.95,0.95}
 \definecolor{Comment}{rgb}{0.4,0.4,0.4}
+\definecolor{Pale}{rgb}{0.6,0.6,0.6}
 
-% FROM PLP talk
-\lstset{%
-  language=Prolog,
-  columns=fullflexible,
-  % basicstyle=\usefont{T1}{cmr}{m}{n},
-  basicstyle=\sffamily,
-  % keywordstyle=\bfseries\rmfamily,
-  keywordstyle=\rmfamily,
-  identifierstyle=\itshape, emphstyle=\itshape,
-  % identifierstyle=\itshape, emphstyle=\upshape,
-  % identifierstyle=\upshape, emphstyle=\itshape,
-   commentstyle=\color{Comment}\bfseries,
-  emph={X,Y,Z,M,N,N1,N2,I1,I2,P,P1,P2,L},
-  morekeywords={table,false,no,yes,ground,module,meta_predicate,pred,type},
-  deletekeywords={statistics,length,repeat,pp,is,sh,EM,time,tab,prompt},
-  upquote=true,
-  literate={==>}{{$\Rightarrow$ }}2
+\lstdefinelanguage[SWI]{Prolog}{
+  mathescape=true,
+  morecomment=[l]\%,
+  morecomment=[s]{/*}{*/},
+  morestring=[bd]``,
+  % alternatively, typeset variables in upright Roman.
+  % emph={X,Y,Z,M,N,N1,N2,I1,I2,P,P1,P2,L},
+  moredelim=[is][]{@}{@},
+  moredelim=[is][\itshape\bfseries]{~}{~},
+  morekeywords={op,repeat,var,nonvar,ground,module},
+  morekeywords=[2]{meta_predicate,is,table,true,false},
+  literate={+}{{$+$}}1 
+           {-}{{$-$}}1 
+           {<>}{{$\neq$}}1 
+           {>}{{$>$}}1 
+           {<}{{$<$}}1 
+           {>=}{{$\geq$}}2 
+           {=}{{$=$ }}1%
+           {=..}{{$=\!..$ }}2%
+           {=<}{{$\leq$}}2 
+           {==}{{$=\!=$ }}1%
+           {==>}{{$\Rightarrow$ }}2
+           {<=>}{{$\Leftrightarrow$ }}2%
+           {->}{{$\rightarrow$ }}2%
+           {:-}{{$\leftarrow$ }}2%
+           {-->}{{$\longrightarrow$ }}3%
+           % {~}{{$\sim$}}1%
+           {\\+}{{$\neg$}}1%
+           {]}{{$\,$]}}1%  space before list end
+           {|}{{$\,|$}}2
+           % {|}{{$\mid$}}1
+           {&}{{\$}}1%     dollar sign: use ampersand
+           % lambdas?
+           {\\}{{$\lambda$}}1
+           {^}{{$.$}}1
+           % variables with numerical subscripts
+           {Ys1}{{$\mathit{Ys}_1$}}3
+           {Ys2}{{$\mathit{Ys}_2$}}3
+           {R0}{{$R_0$}}2
+           {A1}{{$A_1$}}2
+           {A2}{{$A_2$}}2
+           {A3}{{$A_3$}}2
+           {M1}{{$M_1$}}2
+           {M2}{{$M_2$}}2
+           {N1}{{$N_1$}}2
+           {N2}{{$N_2$}}2
+           {N3}{{$N_3$}}2
            {S1}{{$S_1$}}2
            {S2}{{$S_2$}}2
            {S3}{{$S_3$}}2
-           {<=>}{{$\Leftrightarrow$ }}2
-           {->}{{$\rightarrow$ }}2
-           {-->}{{$\longrightarrow$ }}3
-           {~}{{$\sim$ }}1
-           {|}{{$| $}}1
-  }
-
+  }[keywords,comments,strings]%
 
 \lstnewenvironment{prolog-barred} {\lstset{%
    basicstyle=\ttfamily\small,
@@ -43,7 +68,7 @@
    framesep=1em,
    framexleftmargin=0em,
    mathescape=true,
-   language=prolog,
+   language=[SWI]Prolog,
    columns=spaceflexible,
    % aboveskip=0.75em,
    % belowskip=0.75em,
@@ -53,57 +78,36 @@
    gobble=2
   }} {}
 
-\lstnewenvironment{prolog} {\lstset{%
-  mathescape=true,
-  language=prolog,
+\lstnewenvironment{prolog}[1][]{\lstset{%
+  language=[SWI]Prolog,
   columns=spaceflexible,
-  morekeywords={table,false,no,yes,ground,module,meta_predicate},
-	deletekeywords={ground},
   aboveskip=1.00em,
   belowskip=1.00em,
-  xleftmargin=1.5em,
-  tabsize=2,
-  gobble=2
-  }} {}
-
-\lstnewenvironment{prolog-framed}[1][name=ad1]{\lstset{%
-  mathescape=true,
-  language=prolog,
-  columns=spaceflexible,
-  % basicstyle=\sffamily,
-  keywordstyle=\bfseries\rmfamily,
-  morekeywords={table,false,no,yes,ground,module,meta_predicate},
-  deletekeywords={functor,name,statistics,length,repeat,pp,is,sh,EM,time,tab,prompt,numbervars},
-  frame=lines,
-  aboveskip=1.0em,
-  belowskip=1.0em,
-  xleftmargin=0em,
-  xrightmargin=0em,
+  xleftmargin=2.0em,
   tabsize=2,
   gobble=2,
-  numbers=left,
-  firstnumber=auto,
-  numberstyle=\small\color{Comment},
-  literate={==>}{{$\Rightarrow$ }}2
-           {Ys1}{{$\mathit{Ys}_1$}}3
-           {Ys2}{{$\mathit{Ys}_2$}}3
-           {A1}{{$A_1$}}2
-           {A2}{{$A_2$}}2
-           {A3}{{$A_3$}}2
-           {N1}{{$N_1$}}2
-           {N2}{{$N_2$}}2
-           {N3}{{$N_3$}}2
-           {S1}{{$S_1$}}2
-           {S2}{{$S_2$}}2
-           {S3}{{$S_3$}}2%
-           {&}{{\$}}1%
-           {<=>}{{$\Leftrightarrow$}}2%
-           {->}{{$\rightarrow$}}2%
-           {-->}{{$\longrightarrow$}}3%
-           {~}{{$\sim$ }}1%
-           {]}{{$\,$]}}1
-           {|}{{$\,|$}}3,
   #1
   }} {}
 
-\lstMakeShortInline[language=Prolog,upquote=true,deletekeywords={numbervars,assert,retract,repeat,tab,prompt}]"
+\lstnewenvironment{prolog-framed}[1][]{\lstset{%
+  language=[SWI]Prolog,
+  columns=flexible,
+ % \\ keywordstyle=\bfseries,
+  frame=lines,
+  aboveskip=1.1em,
+  belowskip=1.1em,
+  framexleftmargin=1.8em,
+  xleftmargin=1.8em,
+  framexrightmargin=0em,
+  xrightmargin=0em,
+  framesep=0.4em,
+  tabsize=2,
+  gobble=2,
+  numbersep=1em,
+  % numbers=right,
+  stepnumber=4,
+  firstnumber=auto,
+  numberstyle=\small\color{Pale},
+  #1
+  }} {}
+

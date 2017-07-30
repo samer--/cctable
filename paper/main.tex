@@ -10,7 +10,22 @@
 \usepackage[round]{natbib}
 \usepackage{units}
 \usepackage{authblk}
+\usepackage{simpsons}
 \usepackage{prolog,ocaml,abbrvs,refutils,figutils,nicefrac}
+
+\lstset{
+  basicstyle=\rmfamily,
+  % basicstyle=\usefont{T1}{cmr}{m}{n},
+  % basicstyle=\sffamily,
+  keywordstyle=\bfseries,
+  keywordstyle=[2]\upshape,
+  identifierstyle=\itshape,
+  emphstyle=\bfseries,
+  commentstyle=\color{DarkRed}
+  }
+
+\lstMakeShortInline[language={[Samer]Caml},basicstyle=\rmfamily,identifierstyle=\itshape]| 
+\lstMakeShortInline[language={[SWI]Prolog},basicstyle=\rmfamily,identifierstyle=\itshape]"
 
 \def\nf(#1,#2){\nicefrac{#1}{#2}}
 

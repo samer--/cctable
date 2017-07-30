@@ -2,22 +2,69 @@
 % \usepackage{stmaryrd}
 
 \definecolor{ListingBar}{rgb}{0.8,0.8,0.8}
-\lstnewenvironment{ocaml} {\lstset{language=[Objective]Caml,
+
+\lstdefinelanguage[Samer]{Caml}[Objective]{Caml}{%
+	literate={'a}{{$\alpha$}}1{'b}{{$\beta$}}1{'w}{{$\omega$}}1{'s}{{$\sigma$}}1
+               {+}{{$+$}}1 {/}{{$/$}}1 
+% 							 {\}}{]}1 {\{}{[}1
+% 							 {\}\}}{\}}1 {\{\{}{\{}1
+% 							 {\{\}}{[\,]}2
+               {\ *\ }{{ $\times$ }}3
+               {**}{{$\circ$}}1
+               {=}{{$=$}}1 
+               {<>}{{$\neq$}}1 
+               {>}{{$>$}}1 
+               {<}{{$<$}}1 
+               {++}{{$+\!\!\!+$}}1 {::}{{$::$}}1
+               % {\\\\}{{\char`\\\char`\\}}1
+               {->}{{$\rightarrow$}}2
+               {>=}{{$\geq$}}2 
+               {<-}{{$\leftarrow$}}2
+               {-->}{{$\longrightarrow$ }}3
+               {<=}{{$\leq$}}2 {=>}{{$\Rightarrow$}}2
+               {<<}{{$\ll$}}2 {>>}{{$\gg$}}2 {>>=}{{$\gg\!\!=$}}2
+               {*>}{{$*\!\!\!>$}}2 {<|>}{{$<\!\!\!|\!\!\!>$}}3
+               % {<|>}{{$\obar$}}2
+               % {<*>}{{$\varoast$}}2 
+               % {<+>}{{$\varoplus$}}2
+               {<*>}{{$<\!\!\!*\!\!\!>$}}2 
+               {<+>}{{$<\!\!\!\!+\!\!\!\!>$}}2
+               % {|}{{$\mid$}}1
+               % {undefined}{{$\bot$}}1
+               {not\ }{{$\neg$}}1 {epsilon}{{$\epsilon$}}1
+               % {`elem`}{{$\in$}}1
+               % {forall}{{$\forall$}}1
+  }
+
+\lstnewenvironment{ocaml} {\lstset{language=[Samer]Caml,
+  gobble=2,
+  tabsize=2,
+  keepspaces=true,
 	columns=spaceflexible,
 	frame=lines,
 	aboveskip=0.75em,
 	belowskip=0.75em}} {}
-\lstnewenvironment{ocamlet} {\lstset{language=[Objective]Caml,columns=spaceflexible,xleftmargin=1.2em}} {}
+\lstnewenvironment{ocamlet} {\lstset{language=[Samer]Caml,
+  gobble=2,
+  tabsize=2,
+  keepspaces=true,
+  columns=spaceflexible,xleftmargin=2.0em}} {}
 \lstnewenvironment{badocaml} {\lstset{
+  gobble=2,
+  tabsize=2,
+  keepspaces=true,
 	frame=leftline,
 	framesep=0.9em,
 	framerule=0.3em,
 	xleftmargin=1.2em,
 	columns=spaceflexible,
 	rulecolor=\color{ListingBar},
-	language=[Objective]Caml
+	language=[Samer]Caml
 	}} {}
-\lstnewenvironment{ocaml-tt} {\lstset{language=[Objective]Caml,
+\lstnewenvironment{ocaml-tt} {\lstset{language=[Samer]Caml,
+  gobble=2,
+  tabsize=2,
+  keepspaces=true,
   basicstyle=\ttfamily\small,
 	emphstyle=\mdseries,
 	keywordstyle=\bfseries,
@@ -30,41 +77,3 @@
 	aboveskip=0.75em,
 	belowskip=0.75em}} {}
 
-\lstset{%
-  language=[Objective]Caml,
-  basicstyle=\rmfamily,
-  identifierstyle=\itshape,
-	commentstyle=\sffamily\itshape\color{DarkRed},
-	keywordstyle=\sffamily\bfseries,
-  tabsize=2,
-  columns=fullflexible, 
-  keepspaces=true,
-	% xleftmargin=1.2em,
-  gobble=2,
-	literate={'a}{{$\alpha$}}1{'b}{{$\beta$}}1{'w}{{$\omega$}}1{'s}{{$\sigma$}}1
-%                {+}{{$+$}}1 {/}{{$/$}}1 
-% 							 {\}}{]}1 {\{}{[}1
-% 							 {\}\}}{\}}1 {\{\{}{\{}1
-% 							 {\{\}}{[\,]}2
-                 {\ *\ }{{ $\times$ }}3
-%                {**}{{$\circ$}}1
-%                {=}{{$=$}}1 
-%                {<>}{{$\neq$}}1 {>}{{$>$}}1 {<}{{$<$}}1 
-%                {++}{{$+\!\!\!+$}}1 {::}{{$::$}}1
-%                % {\\\\}{{\char`\\\char`\\}}1
-               {->}{{$\rightarrow$}}2
-               {>=}{{$\geq$}}2 
-               {<-}{{$\leftarrow$}}2
-               {-->}{{$\longrightarrow$ }}3
-%                {<=}{{$\leq$}}2 {=>}{{$\Rightarrow$}}2
-%                {<<}{{$\ll$}}2 {>>}{{$\gg$}}2 {>>=}{{$\gg\!\!=$}}2
-%                {*>}{{$*\!\!\!>$}}2 {<|>}{{$<\!\!\!|\!\!\!>$}}3
-%                % {*>}{{$*\!\!\!>$}}2 {<|>}{{$\obar$}}2
-%                % {<*>}{{$\varoast$}}2 {<+>}{{$\varoplus$}}2
-%                {<*>}{{$<\!\!\!*\!\!\!>$}}2 {<+>}{{$<\!\!\!\!+\!\!\!\!>$}}2
-%                % {|}{{$\mid$}}1
-%                % {undefined}{{$\bot$}}1
-%                {not\ }{{$\neg$}}1 {epsilon}{{$\epsilon$}}1
-%                % {`elem`}{{$\in$}}1
-%                % {forall}{{$\forall$}}1
-  }
