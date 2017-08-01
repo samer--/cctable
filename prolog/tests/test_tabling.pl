@@ -1,3 +1,4 @@
+#!/usr/bin/env swipl -g run_tests,halt
 /*  Part of SWI-Prolog
 
     Author:        Benoit Desouter <Benoit.Desouter@UGent.be>
@@ -941,3 +942,4 @@ feedback(Fmt) :- debug(tabling, Fmt, []).
 feedback(Fmt,Args) :- debug(tabling, Fmt, Args).
 end       :- debug(tabling, 'end',   []).
 end(I)    :- debug(tabling, 'end ~w',   [I]).
+% vim: ft=prolog
