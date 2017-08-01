@@ -7,7 +7,7 @@ fib(1,1).
 fib(N,X) :-
    succ(M,N), fib(M,Y),
    succ(L,M), fib(L,Z),
-   plus(Y,Z,X).
+   X is Y + Z.
 
 edge(a,b).
 edge(a,c).
