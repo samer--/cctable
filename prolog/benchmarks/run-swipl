@@ -1,0 +1,1 @@
+cpp -P -DSIZE=$3 < $2 | swipl -q -tty -G8g -s harness/swipl.pl -t "main($1)" 
