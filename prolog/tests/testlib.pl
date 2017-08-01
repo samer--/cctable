@@ -45,10 +45,7 @@
        mqualify/3
 	  ]).
 
-:- use_module('../cctable').
-:- use_module(library(terms)).
 :- use_module(library(dialect/hprolog)).
-:- use_module(library(lists)).
 
 :- meta_predicate compare_real_expected_answers(:,+,1).
 
