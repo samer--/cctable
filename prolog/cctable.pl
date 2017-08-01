@@ -1,14 +1,14 @@
-:- module(cctable, [run_tabled/1, cctabled/1]).
+:- module(cctable, [run_tabled/1, cctabled/1, get_tables/1]).
 /** <module> Tabling using multi-prompt delimited control
 
    This module provides a declarative implementation of tabling using delimited
    continuations to manage the state of the tables and to implement tabling
-   itself. Similar to cctable, but using a much faster system for managing
+   itself. Similar to cctable0, but using a much faster system for managing
    nonbacktrackable state.
 */
 
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
-:- use_module(library(ccnbenv), [run_nb_env/1, nb_app/2, nb_app_or_new/3]).
+:- use_module(library(ccnbenv), [run_nb_env/1, nb_app/2, nb_app_or_new/3, nb_dump/1]).
 :- use_module(library(rbutils)).
 :- use_module(library(lambdaki)).
 
@@ -54,3 +54,7 @@ producer(Variant, Generate, KP, Ans) :-
    member(K,[KP|Ks]), call(K,Y,Ans).
 
 new_soln(Y, Ks, tab(Ys1,Ks), tab(Ys2,Ks)) :- rb_add(Y,t,Ys1,Ys2).
+
+get_tables(Tables) :- nb_dump(Raw), rb_map(Raw, sanitise, Tables).
+sanitise(tab(S,_), SL) :- rb_keys(S,SL).
+
