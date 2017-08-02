@@ -9,11 +9,10 @@ function runall {
 	$1 fib.pl 10000
 	$1 naiveReverse.pl 500
 	$1 naiveReverse.pl 1000
-	$1 naiveReverse.pl 2000
-	$1 shuttle.pl 20000
 	$1 shuttle.pl 2000
-	$1 shuttle.pl 50000
 	$1 shuttle.pl 5000
+	$1 shuttle.pl 20000
+	$1 shuttle.pl 50000
 	$1 pingpong.pl 10000
 	$1 pingpong.pl 20000
 	$1 pDoubleFirst.pl 50
