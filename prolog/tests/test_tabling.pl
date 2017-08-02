@@ -1,4 +1,3 @@
-#!/usr/bin/env swipl -g run_tests,halt
 /*  Part of SWI-Prolog
 
     Author:        Benoit Desouter <Benoit.Desouter@UGent.be>
@@ -32,41 +31,15 @@
     POSSIBILITY OF SUCH DAMAGE.
 */
 
-:- module(test_tabling,
-	  [ test_tabling/0
-	  ]).
+:- module(test_tabling, []).
 
 :- use_module(library(plunit)).
 :- use_module(library(debug)).
-:- use_module('../cctable', [cctabled/1, run_tabled/1, head_to_variant/2, get_tables/1]).
-:- use_module('../ccmacros', [head_worker/2, op(1150,fx,table)]).
 :- use_module(testlib).
-
-test_tabling :-
-	run_tests([ tabling_ex1,
-		    tabling_ex2,
-		    tabling_ex3,
-		    tabling_ex4,
-		    tabling_ex5,
-		    tabling_ex6,
-		    tabling_ex7,
-		    tabling_ex8,
-		    tabling_ex9a,
-		    tabling_ex9b,
-		    tabling_ex9c,
-		    tabling_ex9d,
-		    tabling_ex9e,
-		    tabling_ex10,
-		    tabling_ex11,
-		    tabling_ex12,
-		    tabling_ex13,
-		    tabling_ex14,
-		    tabling_ex15,
-		    tabling_ex16,
-		    tabling_ex17%,
-		    % tabling_clpdf
-		  ]).
-
+:- use_module('../ccmacros', [head_worker/2, op(1150,fx,table)]).
+:- current_prolog_flag(argv, [Module|_]),
+   format('Testing module: ~w\n', Module),
+   use_module(Module, [cctabled/1, run_tabled/1, head_to_variant_class/2, get_tables/1]).
 
 :- module_transparent test_preds/1.
 test_preds(Preds) :- 
@@ -81,7 +54,7 @@ test_preds(Preds) :-
 
 head_qualified_variant(M, Head, M:Variant) :-
    head_worker(Head, Worker),
-   head_to_variant(Worker, Variant).
+   head_to_variant_class(Worker, Variant).
 
 variant_answers(M, Variant, Answers) :-
    M:expected_answers_for_variant(Head, Solns),
@@ -183,20 +156,20 @@ expected_variants([c(_)]).
 expected_answers_for_variant(c(_),L) :-
   findall(c(X),between(-10,10,X),L).
 
-c_expected_answers(L) :-
-  findall(X,between(-10,10,X),L).
-
 
 :- table c/1.
 
-c(X) :- before(1), c(Y), feedback('after recusive 1: Y is ~w, and X is ~w',[Y,X]),
-	0 =< Y, Y < 10, X is -Y-1, end(1).
-c(X) :- before(2), c(Y), feedback('after recusive 2: Y is ~w, and X is ~w',[Y,X]),
-	-10 < Y, Y =< 0, X is -Y+1, end(2).
+% c(X) :- before(1), c(Y), feedback('after recusive 1: Y is ~w, and X is ~w',[Y,X]),
+% 	0 =< Y, Y < 10, X is -Y-1, end(1).
+% c(X) :- before(2), c(Y), feedback('after recusive 2: Y is ~w, and X is ~w',[Y,X]),
+% 	-10 < Y, Y =< 0, X is -Y+1, end(2).
+
+c(X) :- c(Y), 0 =< Y, Y < 10, X is -Y-1.
+c(X) :- c(Y), -10 < Y, Y =< 0, X is -Y+1.
 c(0).
 
 test(ex3) :-
-   test_preds([c/1 - c_expected_answers]).
+   test_preds([c/1 - numlist(-10,10)]).
 
 :- end_tests(tabling_ex3).
 
@@ -219,8 +192,6 @@ expected_answers_for_variant(d(_),L) :-
 expected_answers_for_variant(e(_),L) :-
   findall(e(X),between(0,5,X),L).
 
-de_expected_answers(L) :-
-  findall(X,between(0,5,X),L).
 
 :- table d/1, e/1.
 
@@ -253,7 +224,7 @@ e(X) :-
 e(0).
 
 test(ex4) :-
-   test_preds([d/1 - de_expected_answers, e/1 - de_expected_answers]).
+   test_preds([d/1 - numlist(0,5), e/1 - numlist(0,5)]).
 
 :- end_tests(tabling_ex4).
 
@@ -313,9 +284,6 @@ expected_answers_for_variant(g(_),L) :-
 expected_answers_for_variant(h(_),L) :-
   findall(h(X),between(0,4,X),L).
 
-g_expected_answers([1,2,3,4,5]).
-h_expected_answers([0,1,2,3,4]).
-
 :- table g/1, h/1.
 
 g(X) :-
@@ -333,7 +301,7 @@ h(X) :-
 h(0).
 
 test(ex6) :-
-   test_preds([g/1 - g_expected_answers, h/1 - h_expected_answers]).
+   test_preds([g/1 - numlist(1,5), h/1 - numlist(0,4)]).
 
 :- end_tests(tabling_ex6).
 
@@ -376,12 +344,6 @@ expected_answers_for_variant(i3(_),[i3(0),i3(1)]).
 expected_answers_for_variant(i4(_),[i4(3),i4(4)]).
 expected_answers_for_variant(i5(_),[i5(2),i5(3)]).
 
-i1_expected_answers([5,6,7,8,1,2]).
-i2_expected_answers([4,5,6,7]).
-i3_expected_answers([0,1]).
-i4_expected_answers([3,4]).
-i5_expected_answers([2,3]).
-
 :- table i1/1, i2/1, i3/1, i4/1, i5/1.
 
 i1(X) :-
@@ -403,11 +365,11 @@ i3(X) :- between(0,1,X).
 i5(X) :- between(2,3,X).
 
 test(ex7) :-
-   test_preds([ i1/1 - i1_expected_answers
-              , i2/1 - i2_expected_answers
-              , i3/1 - i3_expected_answers
-              , i4/1 - i4_expected_answers
-              , i5/1 - i5_expected_answers
+   test_preds([ i1/1 - =([5,6,7,8,1,2])
+              , i2/1 - numlist(4,7)
+              , i3/1 - numlist(0,1)
+              , i4/1 - numlist(3,4)
+              , i5/1 - numlist(2,3)
               ]).
 
 :- end_tests(tabling_ex7).
@@ -431,7 +393,6 @@ test(ex7) :-
 
 expected_variants([j(_,_)]).
 expected_answers_for_variant(j(_,_),[j(a,b),j(b,a)]).
-j_expected_answers([a-b,b-a]).
 
 :- table j/2.
 
@@ -445,7 +406,7 @@ j(X,Y) :-
 	feedback('j 2: after').
 
 test(ex8) :- 
-   test_preds([j/2 - j_expected_answers]).
+   test_preds([j/2 - =([a-b,b-a])]).
 
 :- end_tests(tabling_ex8).
 
