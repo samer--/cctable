@@ -4,3 +4,4 @@
 *.log
 *.out
 .swipl_history.*
+.yap_history
