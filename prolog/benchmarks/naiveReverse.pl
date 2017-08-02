@@ -5,7 +5,7 @@ Software Practive and Experience, Vol22, No.7, 573-597, 1992.
 ***********************************************************/
 :- table nrev/2.
 
-case(nrev(SIZE), call(nrev(List,Result), Result)) :- numlist(1,SIZE,List).
+case(nrev(SIZE), verify(nrev(List,Result), reverse(List,Result))) :- numlist(1,SIZE,List).
 
 nrev([],[]).
 nrev([X|Rest], Result) :-
