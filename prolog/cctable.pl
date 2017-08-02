@@ -41,8 +41,8 @@ cont_tab(susp(Head, Cont), Ans) :-
    term_variables(Head,Y), K = \Y^Ans^Cont,
    head_to_variant_class(Head, VC),
    nb_app_or_new(VC, new_consumer(Res,K), new_producer(Res)),
-   (  Res = solns(Solns) -> debug(cctable, 'consumer: ~w',[VC]), rb_in(Y, _, Solns), run_tab(Cont, Ans)
-   ;  Res = new_producer -> debug(cctable, 'producer: ~w',[VC]), run_tab(producer(VC, \Y^Head, K, Ans), Ans)
+   (  Res = solns(Solns) -> rb_in(Y, _, Solns), run_tab(Cont, Ans)
+   ;  Res = new_producer -> run_tab(producer(VC, \Y^Head, K, Ans), Ans)
    ).
 
 new_consumer(solns(Solns), K, tab(Solns,Ks), tab(Solns,[K|Ks])).
@@ -50,7 +50,6 @@ new_producer(new_producer, tab(Solns,[])) :- rb_empty(Solns).
 
 producer(VC, Generate, KP, Ans) :-
    call(Generate, Y),
-   debug(cctable, 'solution: ~w',[VC]),
    nb_app(VC, new_soln(Y,Ks)),
    member(K,[KP|Ks]), call(K,Y,Ans).
 
