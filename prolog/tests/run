@@ -1,0 +1,2 @@
+#!/bin/sh
+swipl -s $(dirname $0)/test_tabling.pl -g run_tests,halt -- $1
