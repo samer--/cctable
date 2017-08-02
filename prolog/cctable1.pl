@@ -62,5 +62,6 @@ producer(VC, Generate, KP, Ans) :-
    member(K,[KP|Ks]), call(K,Y,Ans).
 
 get_tables(Tables) :- nb_dump(Raw), rb_empty(E), once(rb_fold(sanitise, Raw, E, Tables)).
+
 sanitise(conts(_)-_,T,T).
 sanitise(solns(V)-S,T1,T2) :- rb_keys(S,SL), rb_add(V,SL,T1,T2).
