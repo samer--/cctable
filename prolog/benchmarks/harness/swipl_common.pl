@@ -1,6 +1,6 @@
 report(Show, Name, Time, Result) :-
    format('~w: ~`.t time = ~w ms~60|', [Name, Time]),
-   (Show=1 -> format('-- ~w\n', [Result]); nl).
+   (Show=1 -> format(' -- ~w\n', [Result]); nl).
 
 run_case(call(Goal,Res), answer(Res), Time) :-
    T1 is cputime, call(Goal), T2 is cputime, Time is round(1000*(T2 - T1)).

@@ -4,7 +4,7 @@ main(Show) :-
    case(Name, Case),
    run_case(Case,Result,Time),
    format('@ ~w: ~`.t time= ~w ms~60|', [Name, Time]),
-   (Show=1 -> format('-- ~w\n', [Result]); nl),
+   (Show=1 -> format(' -- ~w\n', [Result]); nl),
    halt.
 
 run_case(call(Goal,Res), answer(Res), Time) :-
