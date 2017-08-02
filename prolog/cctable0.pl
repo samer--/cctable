@@ -34,7 +34,7 @@ run_tabled(Goal, FinalTables) :-
    term_variables(Goal, Ans),
    run_nb_state(run_tab(Goal, Ans), Tables, FinalTables).
 
-head_to_variant(Head, Variant) :-
+head_to_variant_class(Head, Variant) :-
    copy_term_nat(Head, Variant),
    numbervars(Variant, 0, _).
 
@@ -46,7 +46,7 @@ cont_tab(done, _).
 cont_tab(susp(Head, Cont), Ans) :-
    term_variables(Head,Y), K= \Y^Ans^Cont,
    get(Tabs1),
-   head_to_variant(Head, Variant),
+   head_to_variant_class(Head, Variant),
    (  rb_update(Tabs1, Variant, tab(Solns,Ks), tab(Solns,[K|Ks]), Tabs2)
    -> set(Tabs2),
       rb_in(Y, _, Solns),

@@ -28,9 +28,9 @@ run_tabled(Goal) :-
    term_variables(Goal, Ans),
    run_nb_env(run_tab(Goal, Ans)).
 
-head_to_variant(Head, Variant) :-
-   copy_term_nat(Head, Variant),
-   numbervars(Variant, 0, _).
+head_to_variant_class(Head, VC) :-
+   copy_term_nat(Head, VC),
+   numbervars(VC, 0, _).
 
 run_tab(Goal, Ans) :-
    p_reset(tab, Goal, Status),
@@ -39,22 +39,22 @@ run_tab(Goal, Ans) :-
 cont_tab(done, _).
 cont_tab(susp(Head, Cont), Ans) :-
    term_variables(Head,Y), K = \Y^Ans^Cont,
-   head_to_variant(Head, Variant),
-   nb_app_or_new(Variant, new_consumer(Res,K), new_producer(Res)),
-   (  Res = solns(Solns) -> rb_in(Y, _, Solns), run_tab(Cont, Ans)
-   ;  Res = new_producer -> run_tab(producer(Variant, \Y^Head, K, Ans), Ans)
+   head_to_variant_class(Head, VC),
+   nb_app_or_new(VC, new_consumer(Res,K), new_producer(Res)),
+   (  Res = solns(Solns) -> debug(cctable, 'consumer: ~w',[VC]), rb_in(Y, _, Solns), run_tab(Cont, Ans)
+   ;  Res = new_producer -> debug(cctable, 'producer: ~w',[VC]), run_tab(producer(VC, \Y^Head, K, Ans), Ans)
    ).
 
 new_consumer(solns(Solns), K, tab(Solns,Ks), tab(Solns,[K|Ks])).
 new_producer(new_producer, tab(Solns,[])) :- rb_empty(Solns).
 
-producer(Variant, Generate, KP, Ans) :-
+producer(VC, Generate, KP, Ans) :-
    call(Generate, Y),
-   nb_app(Variant, new_soln(Y,Ks)),
+   debug(cctable, 'solution: ~w',[VC]),
+   nb_app(VC, new_soln(Y,Ks)),
    member(K,[KP|Ks]), call(K,Y,Ans).
 
 new_soln(Y, Ks, tab(Ys1,Ks), tab(Ys2,Ks)) :- rb_add(Y,t,Ys1,Ys2).
 
 get_tables(Tables) :- nb_dump(Raw), rb_map(Raw, sanitise, Tables).
 sanitise(tab(S,_), SL) :- rb_keys(S,SL).
-
