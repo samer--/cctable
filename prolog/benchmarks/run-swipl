@@ -1,1 +1,2 @@
-cpp -P -DSIZE=$4 < $3 | swipl -q -tty -G8g -s harness/$1.pl -t "main($2)"
+#!/bin/bash
+swipl -O -q -tty -G8g -s harness/$1.pl -t "main($2)" -- <(cpp -P -DSIZE=$4 < $3)

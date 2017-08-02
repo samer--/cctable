@@ -1,0 +1,34 @@
+#!/bin/sh
+# Usage: ./tests <test-runner> <show-results?>
+# <test-runner> is one of test-yap, test-swipl etc.
+# <show-result?> is 1 to show them or 0 to not.
+function runall {
+	$1 fib.pl 500
+	$1 fib.pl 750
+	$1 fib.pl 1000
+	$1 fib.pl 10000
+	$1 naiveReverse.pl 500
+	$1 naiveReverse.pl 1000
+	$1 naiveReverse.pl 2000
+	$1 shuttle.pl 20000
+	$1 shuttle.pl 2000
+	$1 shuttle.pl 50000
+	$1 shuttle.pl 5000
+	$1 pingpong.pl 10000
+	$1 pingpong.pl 20000
+	$1 pDoubleFirst.pl 50
+	$1 pDoubleFirst.pl 100
+	$1 pDoubleFirst.pl 200
+	$1 pDoubleFirst.pl 500
+	$1 pDblFstLoop.pl 50
+	$1 pDblFstLoop.pl 100
+	$1 recognize.pl 20000
+	$1 recognize.pl 50000
+	$1 bintree18.pl 1
+	$1 monoidal.pl 1
+	$1 pyramid500.pl 1
+	$1 testJoins.pl 1
+}
+
+runall "./$1 $2" | tee "results/$(sed -e 's/ /_/' <<< $1)-$(git describe --dirty --always)-$(hostname)-$(date +'%Y%m%dT%H%M%S')"
+

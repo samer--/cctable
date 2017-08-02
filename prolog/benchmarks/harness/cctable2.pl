@@ -1,4 +1,4 @@
-:- use_module('../../cctable').
+:- use_module('../../cctable2').
 :- use_module('../../ccmacros').
 :- consult(swipl_common).
 :- current_prolog_flag(argv, [File|_]),
