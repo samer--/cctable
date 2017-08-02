@@ -14,4 +14,4 @@ time(Goal,Time) :-
 
 run_case_limited(Case, Result, Time) :-
    catch( call_with_time_limit(60, run_tabled(run_case(Case,Result,Time))),
-          time_limit_exceeded, (Time=inf, Result=timeout)).
+          time_limit_exceeded, (Time=inf, Result=timeout(60))).
