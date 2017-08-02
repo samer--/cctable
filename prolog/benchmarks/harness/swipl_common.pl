@@ -1,5 +1,5 @@
 report(Show, Name, Time, Result) :-
-   format('~w: ~`.t time = ~w ms~60|\n', [Name, Time]),
+   format('~w: ~`.t time = ~w ms~60|', [Name, Time]),
    (Show=1 -> format('-- ~w\n', [Result]); nl).
 
 run_case(call(Goal,Res), answer(Res), Time) :-
