@@ -6,9 +6,7 @@
    itself. Similar to cctable0, but using a much faster system for managing
    nonbacktrackable state.
 
-   Combines cctable2 (avoiding lambda copying) and cctable1 (split solns from conts)
-   However, by avoiding copying the list of continuations in producer/4, we may
-   end up having to copy each continuation in order to call it safely?
+   Mostly like cctable1 (split solns from conts) but with slightly fewer lambdas.
 */
 
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
