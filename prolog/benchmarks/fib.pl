@@ -8,7 +8,7 @@
 
 :- table fib/2.
 
-case(fib(SIZE), call(fib(SIZE,Fib),Fib)).
+case(fib(SIZE), ignore(fib(SIZE,_))).
 
 fib(0, 1):-!.
 fib(1, 1):-!.

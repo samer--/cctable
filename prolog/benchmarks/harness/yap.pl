@@ -7,6 +7,9 @@ main(Show) :-
    (Show=1 -> format(' -- ~w\n', [Result]); nl),
    halt.
 
+run_case(ignore(Goal), ignored, Time) :-
+   T1 is cputime, call(Goal), T2 is cputime, Time is round(1000*(T2 - T1)).
+
 run_case(call(Goal,Res), answer(Res), Time) :-
    T1 is cputime, call(Goal), T2 is cputime, Time is round(1000*(T2 - T1)).
 
