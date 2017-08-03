@@ -1,2 +1,2 @@
 #!/bin/bash
-swipl -q -G8g -s harness/$1.pl -- <(cpp -P -DSIZE=$4 < $3)
+swipl -q -G8g -s harness/$1.pl -- <(cpp -P -DSIZE=$3 < $2)
