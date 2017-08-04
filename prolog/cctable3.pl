@@ -10,8 +10,8 @@
    Relies on copying in nb_setval
 */
 
+:- use_module(library/nbenv,    [run_nb_env/1, nb_app/2, nb_app_or_new/3, nb_dump/1]).
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
-:- use_module(library(nbenv), [run_nb_env/1, nb_app/2, nb_app_or_new/3, nb_dump/1]).
 :- use_module(library(rbutils)).
 :- use_module(library(lambdaki)).
 
