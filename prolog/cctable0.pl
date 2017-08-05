@@ -14,7 +14,7 @@
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
 :- use_module(library(ccstate), [run_nb_state/3, set/1, get/1]).
 :- use_module(library(rbutils)).
-:- use_module(lambdaki).
+:- use_module(library(lambdaki)).
 
 
 %% cctabled(+Head:callable) is det.

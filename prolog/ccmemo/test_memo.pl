@@ -3,8 +3,8 @@
 
 :- use_module(library(math)).
 :- use_module(library(dcg_core), [rep//2]).
-:- use_module(library(delimcc), [ccshell/0]).
-:- use_module(library(ccstate),  [run_ref/1]).
+:- use_module(library(delimcc),  [ccshell/0]).
+:- use_module(library(ccref),    [run_ref/1]).
 :- use_module(ccmemo, [guard/1, choose/2, run_list/2, memo_nondet/2, memo_nondet/3]).
 
 run_list_ref(P,Ans) :-

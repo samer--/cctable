@@ -12,11 +12,10 @@ of a binary predicate. The whole of this must be run inside ccstate:run_ref/1,
 a context that provides mutable references as a control effect.
 */
 
-:- use_module(library(rbutils)).
-:- use_module(library(typedef)).
 :- use_module(library(delimcc), [pr_reset/3, pr_shift/2]).
-:- use_module(library(ccstate), [ref_new/2, ref_get/2, ref_app/2, ref_upd/3]).
-:- use_module('../lambdaki').
+:- use_module(library(ccref),   [ref_new/2, ref_get/2, ref_app/2, ref_upd/3]).
+:- use_module(library(lambdaki)).
+:- use_module(library(rbutils)).
 
 :- meta_predicate memo_nondet(2,-), memo_nondet(2,-,-).
 memo_nondet(P,Q) :- memo_nondet(P,Q,_).
