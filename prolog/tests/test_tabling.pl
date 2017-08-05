@@ -37,9 +37,10 @@
 :- use_module(library(debug)).
 :- use_module(testlib).
 :- use_module('../ccmacros', [head_worker/2, op(1150,fx,table)]).
+:- use_module('../library/terms', [numbervars_copy/2]).
 :- current_prolog_flag(argv, [Module|_]),
    format('Testing module: ~w\n', Module),
-   use_module(Module, [cctabled/1, run_tabled/1, head_to_variant_class/2, get_tables/1]).
+   use_module(Module).
 
 :- module_transparent test_preds/1.
 test_preds(Preds) :- 
@@ -54,7 +55,7 @@ test_preds(Preds) :-
 
 head_qualified_variant(M, Head, M:Variant) :-
    head_worker(Head, Worker),
-   head_to_variant_class(Worker, Variant).
+   numbervars_copy(Worker, Variant).
 
 variant_answers(M, Variant, Answers) :-
    M:expected_answers_for_variant(Head, Solns),

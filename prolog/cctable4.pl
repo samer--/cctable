@@ -9,6 +9,7 @@
    Using dynamic DB instead of nb state
 */
 
+:- use_module(library/terms,    [numbervars_copy/2]).
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
 :- use_module(library(rbutils)).
 :- use_module(library(lambdaki)).
@@ -28,16 +29,12 @@ cctabled(Head) :- p_shift(tab, Head).
 :- meta_predicate run_tabled(0).
 run_tabled(Goal) :-
    term_variables(Goal, Ans),
-   call_cleanup( run_tab(Goal, Ans), cleanup).
+   call_cleanup(run_tab(Goal, Ans), cleanup).
 
 cleanup :-
    retractall(active(_)),
    retractall(solution(_,_)),
    retractall(consumer(_,_)).
-
-head_to_variant_class(Head, VC) :-
-   copy_term_nat(Head, VC),
-   numbervars(VC, 0, _).
 
 run_tab(Goal, Ans) :-
    p_reset(tab, Goal, Status),
@@ -46,7 +43,7 @@ run_tab(Goal, Ans) :-
 cont_tab(done, _).
 cont_tab(susp(Head, Cont), Ans) :-
    term_variables(Head,Y), K = k(Y,Ans,Cont),
-   head_to_variant_class(Head, VC),
+   numbervars_copy(Head, VC),
    (  active(VC)
    -> assert(consumer(VC, K)), solution(VC,Y), run_tab(Cont, Ans)
    ;  assert(active(VC)), run_tab(producer(VC, \Y^Head, K, Ans), Ans)

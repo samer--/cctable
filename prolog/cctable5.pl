@@ -10,8 +10,8 @@
    Using SWI tries
 */
 
+:- use_module(library/terms,    [numbervars_copy/2]).
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
-:- use_module(library(rbutils)).
 :- use_module(library(lambdaki)).
 
 
@@ -27,45 +27,35 @@ cctabled(Head) :- p_shift(tab, Head).
 %  cctabled/1 introduced using the source %  transformations in ccmacros.pl.
 :- meta_predicate run_tabled(0).
 run_tabled(Goal) :-
-   trie_new(Trie),
+   trie_new(Trie), 
    term_variables(Goal, Ans),
-   setup_call_cleanup(nb_setval(tabling_trie, Trie),
-                      run_tab(Goal, Ans),
-                      nb_delete(tabling_trie)).
+   b_setval('tab.trie', Trie),
+   run_tab(Goal, Trie, Ans).
 
-head_to_variant_class(Head, VC) :-
-   copy_term_nat(Head, VC),
-   numbervars(VC, 0, _).
-
-run_tab(Goal, Ans) :-
+run_tab(Goal, Trie, Ans) :-
    p_reset(tab, Goal, Status),
-   cont_tab(Status, Ans).
+   cont_tab(Status, Trie, Ans).
 
-cont_tab(done, _).
-cont_tab(susp(Head, Cont), Ans) :-
-   nb_getval(tabling_trie, Trie),
+cont_tab(done, _, _).
+cont_tab(susp(Head, Cont), Trie, Ans) :-
    term_variables(Head,Y), K = k(Y,Ans,Cont),
-   head_to_variant_class(Head, VC),
+   numbervars_copy(Head, VC),
    (  trie_lookup(Trie, VC, tab(Solns,Ks))
    -> trie_update(Trie, VC, tab(Solns,[K|Ks])), % !! potentially expensive copy here
-      trie_gen(Solns, Y, _), run_tab(Cont, Ans) % should we copy Y or stick to grounds?
-   ;  trie_new(Solns),
-      trie_insert(Trie, VC, tab(Solns,[])),
-      run_tab(producer(Trie, VC, Solns, \Y^Head, K, Ans), Ans)
+      trie_gen(Solns, Y, _), run_tab(Cont, Trie, Ans) % should we copy Y or stick to grounds?
+   ;  run_tab(producer(VC, \Y^Head, K, Trie, Ans), Trie, Ans)
    ).
 
-new_producer(new_producer, tab(Solns,[])) :- rb_empty(Solns).
-
-producer(Trie, VC, Solns, Generate, KP, Ans) :-
+producer(VC, Generate, KP, Trie, Ans) :-
+   trie_new(Solns),
+   trie_insert(Trie, VC, tab(Solns,[])),
    call(Generate, Y),
    trie_insert(Solns, Y, t),
    trie_lookup(Trie, VC, tab(_,Ks)), % nb, value is copied on lookup
    member(k(Y,Ans,Cont),[KP|Ks]), call(Cont).
 
-new_soln(Y, Ks, tab(Ys1,Ks), tab(Ys2,Ks)) :- rb_add(Y,t,Ys1,Ys2).
-
 get_tables(TablesTree) :-
-   nb_getval(tabling_trie,Trie),
+   b_getval('tab.trie', Trie),
    findall(VC-SL, trie_variant_class_solutions(Trie, VC, SL), Tables),
    list_to_rbtree(Tables, TablesTree).
 

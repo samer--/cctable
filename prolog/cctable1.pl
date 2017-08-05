@@ -12,7 +12,7 @@
    each solution of Generator in producer/4. It also saves copying the solutions each
    time we add a new consumer continuation.
 */
-
+:- use_module(library/terms,    [numbervars_copy/2]).
 :- use_module(library/ccnbenv,  [run_nb_env/1, nb_get/2, nb_app/2, nb_new/2, nb_get_or_new/3, nb_dump/1]).
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
 :- use_module(library(rbutils)).
@@ -34,10 +34,6 @@ run_tabled(Goal) :-
    term_variables(Goal, Ans),
    run_nb_env(run_tab(Goal, Ans)).
 
-head_to_variant_class(Head, VC) :-
-   copy_term_nat(Head, VC),
-   numbervars(VC, 0, _).
-
 run_tab(Goal, Ans) :-
    p_reset(tab, Goal, Status),
    cont_tab(Status, Ans).
@@ -45,7 +41,7 @@ run_tab(Goal, Ans) :-
 cont_tab(done, _).
 cont_tab(susp(Head, Cont), Ans) :-
    term_variables(Head,Y), K = \Y^Ans^Cont,
-   head_to_variant_class(Head, VC),
+   numbervars_copy(Head, VC),
    nb_get_or_new(solns(VC), old_table(Res), new_table(Res)),
    (  Res = solns(Solns) -> nb_app(conts(VC), cons(K)), rb_in(Y, _, Solns), run_tab(Cont, Ans) % may bind Y vars in solns!
    ;  Res = new_table    -> nb_new(conts(VC), =([])), run_tab(producer(VC, \Y^Head, K, Ans), Ans)
