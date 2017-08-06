@@ -1,4 +1,4 @@
-:- module(cctable0, [run_tabled/1, run_tabled/2, cctabled/1]).
+:- module(cctable0, [run_tabled/1, run_tabled/2, cctabled/1, get_tables/1]).
 /** <module> Tabling using multi-prompt delimited control
 
    This module provides a declarative implementation of tabling using delimited
@@ -62,3 +62,6 @@ producer(Variant, Generate, KP, Ans) :-
    set(Tabs2),
    member(K,[KP|Ks]),
    call(K,Y1,Ans).
+
+get_tables(Tables) :- get(Tabs), rb_map(Tabs, sanitise, Tables).
+sanitise(tab(S,_), SL) :- rb_keys(S,SL).
