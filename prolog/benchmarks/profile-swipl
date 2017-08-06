@@ -1,2 +1,2 @@
 #!/bin/bash
-swipl -O -q -G8g -s harness/$1.pl -g "profile(main($2))" -- <(cpp -P -DSIZE=$4 < $3)
+swipl -O -q -G8g -s harness/$1.pl -g "profile(main(0))" -- <(cpp -P -DSIZE=$3 < $2)
