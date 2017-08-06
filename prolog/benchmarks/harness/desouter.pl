@@ -5,5 +5,6 @@
 
 main(Show) :-
    case(Name, Case),
-   run_case(Case,Result,Time),
-   report(Show, Name, Time, Result).
+   run_case(Case,_,Time1), abolish_all_tables,
+   run_case(Case,Result,Time2),
+   report(Show, Name, [Time1,Time2], Result).
