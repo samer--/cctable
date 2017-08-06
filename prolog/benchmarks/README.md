@@ -19,7 +19,7 @@ Then, call the runner from the shell prompt as follows:
 
 For example,
 
-	$ ./run-swipl 1 fib.pl 50
+	$ ./run-swipl desouter 1 fib.pl 50
 	$ ./run-yap 0 naiveReverse.pl 1000
 
 The first prints the results, the second does not. When printing results,
