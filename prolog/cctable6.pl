@@ -1,14 +1,10 @@
 :- module(cctable6, [run_tabled/1, cctabled/1, get_tables/1]).
 /** <module> Tabling using multi-prompt delimited control
 
-   This module provides a declarative implementation of tabling using delimited
-   continuations to manage the state of the tables and to implement tabling
-   itself. Similar to cctable0, but using a much faster system for managing
-   nonbacktrackable state.
-
-   Using SWI tries
-   Using mutable list references for continuations
-   Not representing VCs as ground terms (not necessary for trie)
+   This version is based on cctable5 (using tries) but now
+   the list of consumer continations for each variant class is
+   represented as an immutable reference to a mutable list
+   which cheap to grow, avoiding a quadratic update cost.
 */
 
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).

@@ -1,13 +1,11 @@
 :- module(cctable5, [run_tabled/1, cctabled/1, get_tables/1]).
 /** <module> Tabling using multi-prompt delimited control
 
-   This module provides a declarative implementation of tabling using delimited
-   continuations to manage the state of the tables and to implement tabling
-   itself. Similar to cctable0, but using a much faster system for managing
-   nonbacktrackable state.
-
-   Avoiding lambda copying.
-   Using SWI tries
+   This version uses SWI Prolog's tries library to manage the map
+   for variant classes to tables, and also to represent the set of
+   solutions for each variant class. Also, there is no longer any
+   need to represent variant classes as ground terms as the trie
+   library works on variant terms directly.
 */
 
 :- use_module(library/terms,    [numbervars_copy/2]).

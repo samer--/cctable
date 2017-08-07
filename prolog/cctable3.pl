@@ -1,13 +1,8 @@
 :- module(cctable3, [run_tabled/1, cctabled/1, get_tables/1]).
-/** <module> Tabling using multi-prompt delimited control
+/** <module> Tabling using delimited control
 
-   This module provides a declarative implementation of tabling using delimited
-   continuations to manage the state of the tables and to implement tabling
-   itself. Similar to cctable0, but using a much faster system for managing
-   nonbacktrackable state.
-
-   Avoiding lambda copying.
-   Relies on copying in nb_setval
+   This module provides a declarative implementation of tabling using delimited continuations.
+   Based on cctable2, but using direct, not delimited control implementation of nbenv.
 */
 
 :- use_module(library/terms,    [numbervars_copy/2]).

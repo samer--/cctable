@@ -1,12 +1,8 @@
 :- module(cctable4, [run_tabled/1, cctabled/1, get_tables/1]).
-/** <module> Tabling using multi-prompt delimited control
+/** <module> Tabling using delimited control
 
-   This module provides a declarative implementation of tabling using delimited
-   continuations to manage the state of the tables and to implement tabling
-   itself. Similar to cctable0, but using a much faster system for managing
-   nonbacktrackable state.
-
-   Using dynamic DB instead of nb state
+   This module provides a declarative implementation of tabling using delimited control.
+   This version uses thread local dynamic predicates to manage the table state.
 */
 
 :- use_module(library/terms,    [numbervars_copy/2]).
