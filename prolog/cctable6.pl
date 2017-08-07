@@ -7,6 +7,7 @@
    which cheap to grow, avoiding a quadratic update cost.
 */
 
+:- use_module(library/nbref, [with_nbref/2, nbref_new/3]).
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
 :- use_module(library(lambdaki)).
 
@@ -20,26 +21,24 @@ cctabled(Head) :- p_shift(tab, Head).
 %  cctabled/1 introduced using the source %  transformations in ccmacros.pl.
 :- meta_predicate run_tabled(0).
 run_tabled(Goal) :-
-   trie_new(Trie), 
    term_variables(Goal, Ans),
-   b_setval('tab.trie', Trie),
-   setup_call_cleanup(lref_init(P), run_tab(Goal, Trie, P, Ans), 
-                      lref_cleanup(P)).
+   with_trie(Trie, (b_setval('tab.trie', Trie), % ugly hack, only for get_tables/1
+                    with_nbref(NBR, run_tab(Goal, Trie, NBR, Ans)))).
 
-run_tab(Goal, Trie, Prefix, Ans) :-
+run_tab(Goal, Trie, NBR, Ans) :-
    p_reset(tab, Goal, Status),
-   cont_tab(Status, Trie, Prefix, Ans).
+   cont_tab(Status, Trie, NBR, Ans).
 
 cont_tab(done, _, _, _).
-cont_tab(susp(Head, Cont), Trie, Prefix, Ans) :-
+cont_tab(susp(Head, Cont), Trie, NBR, Ans) :-
    term_variables(Head,Y), K = k(Y,Ans,Cont),
    (  trie_lookup(Trie, Head, tab(Solns,Conts))
    -> lref_prepend(Conts, K),
-      trie_gen(Solns, Y, _), run_tab(Cont, Trie, Prefix, Ans)
-   ;  lref_new(Prefix, Conts),
+      trie_gen(Solns, Y, _), run_tab(Cont, Trie, NBR, Ans)
+   ;  lref_new(NBR, Conts),
       trie_new(Solns),
       trie_insert(Trie, Head, tab(Solns,Conts)),
-      run_tab(producer(Conts, Solns, \Y^Head, K, Ans), Trie, Prefix, Ans)
+      run_tab(producer(Conts, Solns, \Y^Head, K, Ans), Trie, NBR, Ans)
    ).
 
 producer(Conts, Solns, Generate, KP, Ans) :-
@@ -57,16 +56,8 @@ trie_variant_class_solutions(Trie, Head, Solns) :-
    findall(S, trie_gen(SolnsTrie,S,_), Solns).
 
 % ---  references to growable lists ----
-lref_init(Prefix) :-
-   gensym(lref,ID), atom_concat(ID,'.',Prefix),
-   nb_setval(Prefix, 0).
+with_trie(Trie, Goal) :- setup_call_cleanup(trie_new(Trie), Goal, trie_destroy(Trie)).
 
-lref_cleanup(Prefix) :-
-   nb_getval(Prefix, N), nb_delete(Prefix),
-   forall(between(1,N,I), (atomic_concat(Prefix,I,Ref), nb_delete(Ref))).
-
+lref_new(NBR, Ref) :- nbref_new(NBR, [], Ref).
 lref_get(Ref, Xs) :- nb_getval(Ref, Ys), copy_term(Ys,Xs).
 lref_prepend(Ref, X) :- duplicate_term(X,X1), nb_getval(Ref, Xs), nb_linkval(Ref, [X1|Xs]).
-lref_new(Prefix, Ref) :-
-   nb_getval(Prefix, I), J is I+1, atomic_concat(Prefix, J, Ref),
-   nb_setval(Ref, []), nb_setval(Prefix,J).

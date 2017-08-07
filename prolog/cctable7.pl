@@ -6,8 +6,10 @@
    but this is fixed now.
 */
 
+:- use_module(library/nbref, [with_nbref/2, nbref_new/3]).
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
 :- use_module(library(lambdaki)).
+
 
 %% cctabled(+Head:callable) is det.
 :- meta_predicate cctabled(0).
@@ -20,10 +22,8 @@ cctabled(Head) :- p_shift(tab, Head).
 :- meta_predicate run_tabled(0).
 run_tabled(Goal) :-
    term_variables(Goal, Ans),
-   setup_call_cleanup(setup(Env), run_tab(Goal,Env,Ans), cleanup(Env)).
-
-setup(env(Trie,NBR)) :- trie_new(Trie), nbref_init(NBR), b_setval('tab.trie', Trie).
-cleanup(env(Trie,NBR)) :- trie_destroy(Trie), nbref_cleanup(NBR).
+   with_trie(Trie, (b_setval('tab.trie', Trie), % ugly hack, only for get_tables/1
+                    with_nbref(NBR, run_tab(Goal,env(Trie,NBR),Ans)))).
 
 run_tab(Goal, Env, Ans) :-
    p_reset(tab, Goal, Status),
@@ -59,21 +59,12 @@ trie_variant_class_solutions(Trie, Head, SolnsList) :-
    findall(S, sref_gen(Solns,S), SolnsList).
 
 % ---  references to growable lists ----
-nbref_init(Prefix) :-
-   gensym(nbref,ID), atom_concat(ID,'.',Prefix),
-   nb_setval(Prefix, 0).
-
-nbref_cleanup(Prefix) :-
-   nb_getval(Prefix, N), nb_delete(Prefix),
-   forall(between(1,N,I), (atomic_concat(Prefix,I,Ref), nb_delete(Ref))).
-
-nbref_new(Prefix, Value, Ref) :-
-   nb_getval(Prefix, I), J is I+1, atomic_concat(Prefix, J, Ref),
-   nb_setval(Ref, Value), nb_setval(Prefix,J).
+with_trie(Trie, Goal) :- setup_call_cleanup(trie_new(Trie), Goal, trie_destroy(Trie)).
 
 lref_get(Ref, Xs) :- nb_getval(Ref, Ys), copy_term(Ys,Xs).
 lref_prepend(Ref, X) :- duplicate_term(X,X1), nb_getval(Ref, Xs), nb_linkval(Ref, [X1|Xs]).
 lref_new(Prefix, Ref) :- nbref_new(Prefix, [], Ref).
+
 sref_gen(Ref, X) :- nb_getval(Ref, Ys), gen_nb_set(Ys, X).
 sref_add(Ref, X) :- duplicate_term(X,X1), nb_getval(Ref, Xs), add_nb_set(X1,Xs,true).
 sref_new(Prefix, Ref) :- empty_nb_set(Empty), nbref_new(Prefix, Empty, Ref).
