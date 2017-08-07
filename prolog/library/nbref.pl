@@ -1,7 +1,6 @@
 :- module(nbref, [with_nbref/2, nbref_new/3]).
 
 :- meta_predicate with_nbref(-,0).
-
 with_nbref(E, Goal) :- setup_call_cleanup(setup(E), Goal, cleanup(E)).
 
 setup(E) :- gensym(nbref,ID), atom_concat(ID,'.',E), nb_setval(E, 0).
