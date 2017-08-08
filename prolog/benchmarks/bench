@@ -6,6 +6,7 @@ function runall {
 	$1 fib.pl 500
 	$1 fib.pl 750
 	$1 fib.pl 1000
+	$1 fibAlt.pl 1000
 	$1 fib.pl 10000
 	$1 naiveReverse.pl 500
 	$1 naiveReverse.pl 1000
