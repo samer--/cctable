@@ -20,10 +20,10 @@ cctabled(Head) :- p_shift(tab, Head).
 %  cctabled/1 introduced using the source %  transformations in ccmacros.pl.
 :- meta_predicate run_tabled(0).
 run_tabled(Goal) :-
-   nb_setval(cont_sizes,[]),
-   term_variables(Goal, Ans),
-   with_trie(Trie, (b_setval('tab.trie', Trie), % ugly hack, only for get_tables/1
-                    with_nbref(NBR, run_tab(Goal, Trie, NBR, Ans)))).
+   term_variables(Goal, Ans), trie_new(Trie),
+   setup_call_cleanup(nb_setval('tab.trie', Trie), % ugly hack, only for get_tables/1
+                      with_nbref(NBR, run_tab(Goal, Trie, NBR, Ans)),
+                      nb_delete('tab.trie')).
 
 run_tab(Goal, Trie, NBR, Ans) :-
    p_reset(tab, Goal, Status),
@@ -51,10 +51,8 @@ lref_new(NBR, K0, Ref) :- nbref_new(NBR, [K0], Ref).
 lref_get(Ref, Xs) :- nb_getval(Ref, Ys), copy_term(Ys,Xs).
 lref_add(Ref, K) :- duplicate_term(K,K1), nb_getval(Ref, [K0|Ks]), nb_linkval(Ref, [K0,K1|Ks]).
 
-with_trie(Trie, Goal) :- setup_call_cleanup(trie_new(Trie), Goal, trie_destroy(Trie)).
-
 get_tables(TablesTree) :-
-   b_getval('tab.trie', Trie),
+   nb_getval('tab.trie', Trie),
    findall(Head-SL, trie_variant_class_solutions(Trie, Head, SL), Tables),
    list_to_rbtree(Tables, TablesTree).
 
