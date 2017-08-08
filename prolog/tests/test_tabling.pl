@@ -68,6 +68,22 @@ variant_answers(M, Variant, Answers) :-
 test_preds_inner(M, Preds, Tables) :- maplist(test_pred(M),Preds), get_tables(Tables). 
 test_pred(M, Pred/Arity-Answers)   :- compare_real_expected_answers(M:Pred,Arity,M:Answers).
 
+:- begin_tests(tabling_ex0).
+
+expected_variants([a(_),p(_)]).
+expected_answers_for_variant(a(_),[a(0.3)]).
+expected_answers_for_variant(p(_),[p(0.7)]).
+
+:- table p/1, a/1.
+
+p(P):- (a(P0)->P is 1-P0;P=1).
+
+a(0.3).
+
+test(ex0) :-
+  test_preds([p/1 - =([0.7])]).
+
+:- end_tests(tabling_ex0).
 
 		 /*******************************
 		 *	    EXAMPLE 1		*
