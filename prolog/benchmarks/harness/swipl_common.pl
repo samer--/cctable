@@ -18,3 +18,23 @@ run_case_limited(Case, Result, Time) :-
 run_case_limited(Limit, Case, Result, Time) :-
    catch( call_with_time_limit(Limit, run_tabled(run_case(Case,Result,Time))),
           time_limit_exceeded, (Time=inf, Result=timeout(Limit))).
+
+user:portray(clause(PI,Base,Line,PC)) :-
+  format('{~q at ~w:~d @PC=~w}', [PI, Base, Line, PC]).
+
+print_cont(Cont) :-
+   convert(Cont,Cont1),
+   pprint(Cont1).
+
+convert(X1,X2) :- compound(X1) -> X1 =.. [Head| Args], convert_compound(Head, Args, X2); X2=X1.
+convert_compound('$cont$', [Clause, PC | Args1], frame(clause(PI,Base,Line,PC),Args2)) :- !,
+  clause_property(Clause, file(File)),
+  file_base_name(File, Base),
+  clause_property(Clause, line_count(Line)),
+  clause_property(Clause, predicate(PI)),
+  maplist(convert, Args1, Args2).
+
+convert_compound(Head, Args1, X2) :-
+   maplist(convert,Args1,Args2),
+   X2 =.. [Head |Args2].
+
