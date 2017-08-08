@@ -21,6 +21,7 @@ cctabled(Head) :- p_shift(tab, Head).
 %  cctabled/1 introduced using the source %  transformations in ccmacros.pl.
 :- meta_predicate run_tabled(0).
 run_tabled(Goal) :-
+   nb_setval(cont_sizes,[]),
    term_variables(Goal, Ans),
    with_trie(Trie, (b_setval('tab.trie', Trie), % ugly hack, only for get_tables/1
                     with_nbref(NBR, run_tab(Goal, Trie, NBR, Ans)))).
@@ -31,6 +32,8 @@ run_tab(Goal, Trie, NBR, Ans) :-
 
 cont_tab(done, _, _, _).
 cont_tab(susp(Head, Cont), Trie, NBR, Ans) :-
+   % pprint(Head:Cont),
+   record_term_size(cont_sizes, Cont, Head),
    term_variables(Head,Y), K = k(Y,Ans,Cont),
    (  trie_lookup(Trie, Head, tab(Solns,Conts))
    -> lref_add(Conts, K),
@@ -61,3 +64,9 @@ with_trie(Trie, Goal) :- setup_call_cleanup(trie_new(Trie), Goal, trie_destroy(T
 lref_new(NBR, K0, Ref) :- nbref_new(NBR, [K0], Ref).
 lref_get(Ref, Xs) :- nb_getval(Ref, Ys), copy_term(Ys,Xs).
 lref_add(Ref, K) :- duplicate_term(K,K1), nb_getval(Ref, [K0|Ks]), nb_linkval(Ref, [K0,K1|Ks]).
+
+record_term_size(Key,X,Label) :-
+   term_size(X,Size),
+   nb_getval(Key,L),
+   copy_term(Label-Size,Entry),
+   nb_linkval(Key, [Entry|L]).
