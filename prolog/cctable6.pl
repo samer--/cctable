@@ -38,10 +38,10 @@ cont_tab(susp(Head, Cont), Trie, NBR, Ans) :-
    ;  lref_new(NBR, Conts),
       trie_new(Solns),
       trie_insert(Trie, Head, tab(Solns,Conts)),
-      run_tab(producer(Conts, Solns, \Y^Head, K, Ans), Trie, NBR, Ans)
+      run_tab(producer(\Y^Head, K, Conts, Solns, Ans), Trie, NBR, Ans)
    ).
 
-producer(Conts, Solns, Generate, KP, Ans) :-
+producer(Generate, KP, Conts, Solns, Ans) :-
    call(Generate, Y), trie_insert(Solns, Y, t),
    lref_get(Conts,Ks), member(k(Y,Ans,Cont),[KP|Ks]), call(Cont).
 
@@ -52,12 +52,12 @@ get_tables(TablesTree) :-
 
 trie_variant_class_solutions(Trie, Head, Solns) :-
    trie_gen(Trie, Head, tab(SolnsTrie, _)),
-   numbervars(Head, 0, _), 
+   numbervars(Head, 0, _),
    findall(S, trie_gen(SolnsTrie,S,_), Solns).
 
-% ---  references to growable lists ----
 with_trie(Trie, Goal) :- setup_call_cleanup(trie_new(Trie), Goal, trie_destroy(Trie)).
 
+% ---  references to growable lists ----
 lref_new(NBR, Ref) :- nbref_new(NBR, [], Ref).
 lref_get(Ref, Xs) :- nb_getval(Ref, Ys), copy_term(Ys,Xs).
 lref_prepend(Ref, X) :- duplicate_term(X,X1), nb_getval(Ref, Xs), nb_linkval(Ref, [X1|Xs]).
