@@ -1,10 +1,9 @@
 :- module(cctable8, [run_tabled/1, cctabled/1, get_tables/1]).
-/** <module> Tabling using multi-prompt delimited control
+/** <module> Tabling using delimited control
 
-   This version is based on cctable5 (using tries) but now
-   the list of consumer continations for each variant class is
-   represented as an immutable reference to a mutable list
-   which cheap to grow, avoiding a quadratic update cost.
+   This version is based on cctable6, but storing the producer
+   continuation in the mutable continuations list along with the
+   consumers. This reduces the size of the captured continuations.
 */
 
 :- use_module(library/nbref, [with_nbref/2, nbref_new/3]).
@@ -32,21 +31,27 @@ run_tab(Goal, Trie, NBR, Ans) :-
 
 cont_tab(done, _, _, _).
 cont_tab(susp(Head, Cont), Trie, NBR, Ans) :-
-   % pprint(Head:Cont),
-   record_term_size(cont_sizes, Cont, Head),
    term_variables(Head,Y), K = k(Y,Ans,Cont),
    (  trie_lookup(Trie, Head, tab(Solns,Conts))
    -> lref_add(Conts, K),
-      trie_gen(Solns, Y, _), run_tab(Cont, Trie, NBR, Ans)
+      trie_gen(Solns, Y, _),
+      run_tab(Cont, Trie, NBR, Ans)
    ;  lref_new(NBR, K, Conts),
       trie_new(Solns),
       trie_insert(Trie, Head, tab(Solns,Conts)),
-      run_tab(producer(Conts, Solns, \Y^Head, Ans), Trie, NBR, Ans)
+      run_tab(producer(\Y^Head, Conts, Solns, Ans), Trie, NBR, Ans)
    ).
 
-producer(Conts, Solns, Generate, Ans) :-
+producer(Generate, Conts, Solns, Ans) :-
    call(Generate, Y), trie_insert(Solns, Y, t),
    lref_get(Conts,Ks), member(k(Y,Ans,Cont),Ks), call(Cont).
+
+% NB. K0 (producer continuation) is kept at the head of the list.
+lref_new(NBR, K0, Ref) :- nbref_new(NBR, [K0], Ref).
+lref_get(Ref, Xs) :- nb_getval(Ref, Ys), copy_term(Ys,Xs).
+lref_add(Ref, K) :- duplicate_term(K,K1), nb_getval(Ref, [K0|Ks]), nb_linkval(Ref, [K0,K1|Ks]).
+
+with_trie(Trie, Goal) :- setup_call_cleanup(trie_new(Trie), Goal, trie_destroy(Trie)).
 
 get_tables(TablesTree) :-
    b_getval('tab.trie', Trie),
@@ -57,16 +62,3 @@ trie_variant_class_solutions(Trie, Head, Solns) :-
    trie_gen(Trie, Head, tab(SolnsTrie, _)),
    numbervars(Head, 0, _),
    findall(S, trie_gen(SolnsTrie,S,_), Solns).
-
-with_trie(Trie, Goal) :- setup_call_cleanup(trie_new(Trie), Goal, trie_destroy(Trie)).
-
-% ---  references to growable lists ----
-lref_new(NBR, K0, Ref) :- nbref_new(NBR, [K0], Ref).
-lref_get(Ref, Xs) :- nb_getval(Ref, Ys), copy_term(Ys,Xs).
-lref_add(Ref, K) :- duplicate_term(K,K1), nb_getval(Ref, [K0|Ks]), nb_linkval(Ref, [K0,K1|Ks]).
-
-record_term_size(Key,X,Label) :-
-   term_size(X,Size),
-   nb_getval(Key,L),
-   copy_term(Label-Size,Entry),
-   nb_linkval(Key, [Entry|L]).
