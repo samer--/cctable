@@ -1,10 +1,5 @@
 % Tabling is also important for the memoisation it offers.
 % The standard example is calculating Fibonacci numbers.
-%
-% As an example, this benchmark calculates the N-th Fibonacci number without tabling.
-% You can compare its execution time to the version with tabling in fib-no-tabling-hprolog.pl
-%
-% This is also interesting for a paper (Marko, Tom).
 
 :- table fib/2.
 
