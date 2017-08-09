@@ -10,7 +10,7 @@
 :- use_module(library(rbutils)).
 :- use_module(library(lambdaki)).
 
-:- thread_local active/1, consumer/2, solution/2.
+:- thread_local producer/1, consumer/2, solution/2.
 
 %% cctabled(+Head:callable) is det.
 %  Call tabled version of Head. Only works in the context of run_tabled/2 or
@@ -28,7 +28,7 @@ run_tabled(Goal) :-
    call_cleanup(run_tab(Goal, Ans), cleanup).
 
 cleanup :-
-   retractall(active(_)),
+   retractall(producer(_)),
    retractall(solution(_,_)),
    retractall(consumer(_,_)).
 
@@ -40,9 +40,9 @@ cont_tab(done, _).
 cont_tab(susp(Head, Cont), Ans) :-
    term_variables(Head,Y), K = k(Y,Ans,Cont),
    numbervars_copy(Head, VC),
-   (  active(VC)
+   (  producer(VC)
    -> assert(consumer(VC, K)), solution(VC,Y), run_tab(Cont, Ans)
-   ;  assert(active(VC)), run_tab(producer(VC, \Y^Head, K, Ans), Ans)
+   ;  assert(producer(VC)), run_tab(producer(VC, \Y^Head, K, Ans), Ans)
    ).
 
 producer(VC, Generate, KP, Ans) :-
@@ -55,4 +55,4 @@ producer(VC, Generate, KP, Ans) :-
 get_tables(Tables) :-
    findall(VC-Solns, gather(VC,Solns), TablesList),
    list_to_rbtree(TablesList,Tables).
-gather(VC,Solns) :- active(VC), findall(S,solution(VC,S),Solns).
+gather(VC,Solns) :- producer(VC), findall(S,solution(VC,S),Solns).
