@@ -1,0 +1,13 @@
+fib(500): .............................. time = [260,260] ms -- ignored
+fib(750): .............................. time = [680,670] ms -- ignored
+fib(1000): ........................... time = [1440,1120] ms -- ignored
+nrev(500): ............................... time = [70,50] ms -- correct(true)
+nrev(1000): ............................ time = [270,220] ms -- correct(true)
+shuttle(2000): ......................... time = [380,360] ms -- solutions(4001)
+shuttle(5000): ....................... time = [2590,2830] ms -- solutions(10001)
+ping_pong(10000): .................... time = [8890,8390] ms -- solutions(10001)
+path_dfst(50): ....................... time = [1860,1990] ms -- solutions(1225)
+path_dfst_loop(50): ................ time = [22040,27590] ms -- solutions(2401)
+recognise(20000): .................. time = [16830,16470] ms -- answer(true)
+monoidal: ........................... time = [inf,136400] ms -- solutions(888)
+pyramid(500): .......................... time = [inf,inf] ms -- timeout(360)
