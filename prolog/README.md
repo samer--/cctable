@@ -15,16 +15,20 @@ Not very effective as it does not address quadratic cost of adding solutions or 
 - cctable2
 : Like cctable, but avoiding double copy of all continuations for each solution found.
 
+- cctable3
+: Like cctable2, but not using delimited control to provide non-backtrackable state.
+
 - cctable4
-: Using thread local dynamic predicates to factorise state completely.
+: Using thread local dynamic predicates to factorise state completely, avoiding quadratic costs.
 
 - cctable5
-: Using SWI tries to store tables and solutions for each variant class
+: Using SWI tries to store tables and solutions for each variant class, avoiding quadratic cost
+for adding solutions.
 
 - cctable6
 : Like cctable5, but using a reference to a mutable list to store consumer
-continuations instead of storing the list directly in the table entry. This
-avoids copying all the continuations to add a new one (quadratic).
+continuations instead of storing the list directly in the table entry. Avoids
+quadratic cost of adding continuations to consumer list.
 
 - cctable7
 : Like cctable6, but using nb_set instead of trie to collect solutions.
