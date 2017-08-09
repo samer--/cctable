@@ -114,13 +114,6 @@ H.~H. Porter.
 \newblock Earley deduction.
 \newblock Technical report, Oregon Graduate Center, 1986.
 
-\bibitem[Schrijvers et~al.(2008)Schrijvers, Costa, Wielemaker, and
-  Demoen]{SchrijversCostaWielemaker2008}
-T.~Schrijvers, V.~S. Costa, J.~Wielemaker, and B.~Demoen.
-\newblock Towards typed prolog.
-\newblock In \emph{International Conference on Logic Programming}, pages
-  693--697. Springer, 2008.
-
 \bibitem[Schrijvers et~al.(2013)Schrijvers, Demoen, Desouter, and
   Wielemaker]{SchrijversDemoenDesouter2013}
 T.~Schrijvers, B.~Demoen, B.~Desouter, and J.~Wielemaker.
@@ -167,5 +160,13 @@ P.~Tarau and U.~Neumerkel.
 D.~H. Warren.
 \newblock Earley deduction.
 \newblock \emph{Unpublished note}, 1975.
+
+\bibitem[Wielemaker et~al.(2012)Wielemaker, Schrijvers, Triska, and
+  Lager]{WielemakerSchrijversTriska2012}
+J.~Wielemaker, T.~Schrijvers, M.~Triska, and T.~Lager.
+\newblock {SWI-Prolog}.
+\newblock \emph{Theory and Practice of Logic Programming}, 12\penalty0
+  (1-2):\penalty0 67--96, 2012.
+\newblock ISSN 1471-0684.
 
 \end{thebibliography}

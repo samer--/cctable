@@ -1,5 +1,5 @@
 
-\section{Introduction}
+\section{Introduction and background}
 \seclab{intro}
 
 Tabling, or memoisation, is a well known technique for speeding up computations
@@ -8,14 +8,6 @@ them. In other contexts, this strategy is called `dynamic programming', and, whe
 used effectively, can reduce algorithms with exponential time complexity to polynomial
 or linear complexity.
 
-We assume some familiarity with Prolog. In the program listings that follow, the code
-has been rendered using typographic features not available in the real source; in particular
-\verb|:-| is rendered as ":-", \verb|->| as "->", \verb|-->| as "-->", and variables with numeric suffixes
-are rendered with subscripts. In addition, Prolog lambda expressions are typeset, for example,
-as "\X^Y^Goal", but coded as \verb|\X^Y^Goal|.
-
-\section{Background}
-
 Memoisation
 \cite{Michie1968}.
 Tabling, Earley deduction, OLDT and SLG
@@ -23,6 +15,15 @@ Tabling, Earley deduction, OLDT and SLG
 Delimited continuations \cite{Felleisen1988,DanvyFilinski1990,Filinski1999,Shan2004,KiselyovShan2009,Kiselyov2012}.
 Memoising functional parser combinators \cite{Norvig1991,Lindgren1994,Johnson1995}.
 Continuations in Prolog \cite{TarauNeumerkel1994,TarauDahl1998,Neumerkel1995,SchrijversDemoenDesouter2013,DesouterVan-DoorenSchrijvers2015}.
+
+The system presented here was developed using SWI Prolog \citep{WielemakerSchrijversTriska2012},
+which includes an implementation of delimited continuations
+derived from \citepos{SchrijversDemoenDesouter2013} original implementation for hProlog.
+We assume some familiarity with Prolog in general. In the program listings that follow, the code
+has been rendered using typographic features not available in the real source; in particular
+\verb|:-| is rendered as ":-", \verb|->| as "->", \verb|-->| as "-->", and variables with numeric suffixes
+are rendered with subscripts. In addition, Prolog lambda expressions \citep{Neumerkel2009} are typeset, for example,
+as "\X^Y^Goal", but coded as \verb|\X^Y^Goal|.
 
 \section{Multi-prompt delimited control in Prolog}
 
@@ -70,61 +71,33 @@ that does not unify with the parameter to "shift/1". In this case, the "shift" t
 until a "reset" with a unifiable "Ball" parameter is found. This mechanism is intended to allow different
 computational effects to be implemented by nesting calls to "reset/3", each matching a different set of
 "Ball" terms and each accompanied by a suitable effect handler to deal with the requested effect and then 
-resume the computation by calling the continuation.
-However, a problem with the current implementation makes it difficult to exploit this behaviour.
-Consider the case of two effect handlers "run_inner/1" and "run_outer/1", neither of which do
-anything useful, but both correctly invoke their continuations by calling themselves recursively
-to reestablish their respective contexts:
-\begin{prolog}
-  ~run_inner~(G) :- reset(G, inner(X), Cont), run_inner(Cont).
-  ~run_outer~(G) :- reset(G, outer(X), Cont), run_outer(Cont).
-  ~work~ :- shift(outer(1)), shift(inner(2)).
-\end{prolog}
-If "work/0" is executed in a nested context by calling "run_outer(run_inner(work))",
-% to run "work/0" in a nested context, 
-then the "shift(outer(1))"
-will pass through the inner reset and be caught by the outer one. However, the captured
-continuation contains neither the outer nor the inner prompt. When the continuation is resumed,
-the outer prompt is restored by the outer handler, but the inner prompt is still missing, so that
-when "shift(inner(2))" is called, there is no matching "reset" to deal with it and an exception will be
-raised.
+resume the computation by calling the continuation.\footnote{Note that this feature only works correctly
+in SWI Prolog beginning with version 7.5.12.}
 
-In order to implemented multi-prompt delimited control without using the partially instantiated
-"Ball" feature, we will begin with a module "delimcc" that implements nested delimited contexts
-correctly on top of the "reset/3" and "shift/1" interface, by exposing an explicit first class prompt
+% In order to support the rest of the code presented here,
+We will begin with a module "delimcc" that provides an alternative interface to delimited control that
+uses a well typed result term instead of the `defaulty' and ill-typed "Cont" produced by "reset/3",
+and also avoids the non-logical behaviour with partially instantiated "Ball" terms by taking instead
+an explicit first class prompt
 as in \citepos{DyvbigJonesSabry2005} and \citepos{Kiselyov2012} libraries. 
-\begin{prolog-framed}[name=delimcc,numbers=left]
+\begin{prolog-framed}[name=delimcc]
   :- module(delimcc, [p_shift/2, p_reset/3, pr_shift/2, pr_reset/3]).
 
   :- meta_predicate p_reset(+,0,-).
   ~p_reset~(Prompt, Goal, Result) :-
-     reset(Goal, Ball, Cont),
-     p_cont(Cont, Ball, Prompt, Result).
-
-  ~p_cont~(0, _, _, done) :- !.
-  ~p_cont~(Cont, Prompt-Signal, Prompt, susp(Signal, Cont)) :- !.
-  ~p_cont~(Cont, Prompt1-Signal1, Prompt, Result) :-
-     shift(Prompt1-Signal1),
-     p_reset(Prompt, Cont, Result).
+    reset(Goal, Prompt-Signal, Cont),
+    (Cont==0 -> Result = done; Result = susp(Signal, Cont)).
 
   ~p_shift~(Prompt, Signal) :- shift(Prompt-Signal).
 \end{prolog-framed}
 "Prompt" is a separate argument to both "p_reset/3" and "p_shift/3", and must be a
-ground term. The result of the call to "reset/3" on line 5 is dealt with by "p_cont/4": if "Goal" succeeded normally,
-then "Result" is set to "done"; if there was a "p_shift", then the resulting
-"Ball" is handled by matching the prompt to which it was addressed (line 14) with the prompt associated with
-this call to "p_reset/3". If they are equal (line 9), then "Result" is set to "susp(Signal, Cont)",
-indicating to the caller of "p_reset/3" that "Goal" was interrupted with the given signal
-and capturing the given continuation (which does \emph{not} include a surrounding prompt).
-If the prompts are different (line 10), then "shift/1" is called again, rather like rethrowing an exception,
-but, crucially, immediately after this call to "shift/1", the continuation captured by the
-inner "p_reset/3" is called inside a new instance of the inner prompt. This has the effect that
-the continuation captured by the outer prompt contains, at the point of reaching this inner
-continuation, a restoration of the inner prompt.
+ground term. The result of the call to "p_reset/3" is either "done" to indicate no continuation
+was captured, or "susp(Signal,Cont)" to indicate that "Signal" was sent to this prompt and
+the captured continuation is "Cont".
 
 With the aim of drawing a closer parallel between the Prolog and functional implementations of delimited
 control, the module also contains "pr_reset/3" and "pr_shift/2", which build on "p_reset/3" and "p_shift/2".
-Instead of the "Goal" argument of "p_reset/3", "pr_reset/3" accepts a callable term "Pred" representing
+Instead of the "Goal" argument of "p_reset/3", "pr_reset/3" accepts a callable term "Pred" representing a
 unary predicate. This is called with a single unbound argument, as in "call(Pred, X)", and plays the role of the thunk
 |f : unit -> 'a| taken by |push_prompt| in the OCaml library. Instead of the term "Signal" 
 taken by "p_shift/2", "pr_shift/2" takes a term "H" representing a binary predicate and is called as
@@ -206,14 +179,14 @@ This interface provides access to a single `blob' of state, but it is quite
 straightforward to build on top of it an effect handler than instead provides an 
 unbounded supply of references to mutable cells, which can then be manipulated independently:
 \begin{prolog-framed}[name=ccstate]
-	:- use_module(library(data/store)).
+  :- use_module(library(data/store)).
 
-	:- meta_predicate run_ref(0), ref_app(+,2).
-	~run_ref~(Goal) :- store_new(S), run_state(ref, Goal, S, _).
+  :- meta_predicate run_ref(0), ref_app(+,2).
+  ~run_ref~(Goal) :- store_new(S), run_state(ref, Goal, S, _).
 
-	~ref_new~(X,R)   :- app(ref, store_add(X,R)).
-	~ref_app~(R,P)   :- app(ref, store_apply(R,P)).
-	~ref_upd~(R,X,Y) :- app(ref, store_upd(R,X,Y)).
+  ~ref_new~(X,R)   :- app(ref, store_add(X,R)).
+  ~ref_app~(R,P)   :- app(ref, store_apply(R,P)).
+  ~ref_upd~(R,X,Y) :- app(ref, store_upd(R,X,Y)).
 \end{prolog-framed}
 The library "data/store" is included in the SWI Prolog add-on package "genutils"
 and provides a pure, declarative implementation of a reference-value store using 
@@ -255,14 +228,14 @@ red-black balanced binary trees implemented in the SWI Prolog built-in library "
 
   ~h_mem~(P,R,X,Y,K,Ans) :-
      Ky =\Y^K,
-     ref_upd(R,Tab,Tab1),
+     ref_upd(R, Tab, Tab1),
      (  rb_upd(X, entry(Ys,Conts), entry(Ys,[Ky|Conts]), Tab, Tab1)
-     -> rb_fold(fst_call_append(Ky),Ys,[],Ans)
+     -> rb_fold(fst_call_append(Ky), Ys, [], Ans)
      ;  rb_empty(EmptySet),
-        rb_insert_new(Tab, X, entry(EmptySet,[]), Tab1),
+        rb_add(X, entry(EmptySet,[]), Tab, Tab1),
         call(P,X,YNew),
         ref_app(R, rb_upd(X, entry(Ys,Conts), entry(Ys2,Conts))),
-        (  rb_insert_new(Ys,YNew,t,Ys2)
+        (  rb_add(YNew, t, YS, Ys2)
         -> foldl(flip_call_append(YNew), [Ky|Conts], [], Ans)
         ;  Ans = [], Ys2 = Ys
         )
@@ -336,7 +309,7 @@ transplanted a functional idiom into Prolog. These deficiencies are remedied in 
 \section{Idiomatic Prolog tabling}
 
 \subsection{Tabling with non-backtrackable state}
-\label{sec:ccnbenv}
+\label{sec:ccnbstate}
 
 The Prolog implementation of delimited continuations interacts in an unproblematic way
 with Prolog's nondeterminism and backtracking: any choice points created inside a
@@ -379,26 +352,12 @@ should not be exposed in the interface of a predicate that uses it internally.
 SWI Prolog provides a number of ways to manage non-backtrackable state, including dynamic predicates
 (using "assert/1" and "retract/1"), a `recorded database', and non-backtrackable
 global variables (using "nb_setval/2" and "nb_getval/2"). All three of these 
-(necessarily) involve a departure from pure Prolog semantics;
-however, in the following implementation, the scope of this impurity and the associated
-dangers of unprotected global mutable state are strictly limited and
-accessed via a carefully controlled computational effect. In addition, the desire to support a more
-idiomatic Prolog interface to tabling (see \secrf{arity-and-mode} below) leads to a requirement for mutable cells to be accessed
-by caller-specified keys, instead of the allocated references used in the "run_ref/1"
-effect handler. Thus, we arrive, using the type declaration scheme
-proposed by \cite{SchrijversCostaWielemaker2008}, at the following interface for the module 
-"ccnbenv" (non-backtrackable environment):
-\begin{prolog}[name=ccnbenv,deletekeywords={ground}]
-  :- @pred@ run_nb_env(+pred).
-  :- @pred@ nb_app(+key(A), +pred(+A,-A)).
-  :- @pred@ nb_app_or_new(+key(A), +pred(+A,-A), +pred(-A)).
-  :- @type@ key(A) == ground.
-\end{prolog}
-The type "key(A)" denotes the type of a key
-pointing to a value of type "A", but in practise, any ground term will do.
-To minimise the number of underlying calls to "shift/1", values associated with keys are 
-created or modified using unary or binary predicates resectively.
-The implementation of this module can be found in the appendix~\ref{sec:ccnbenv-imp}.
+(necessarily) involve a departure from pure Prolog semantics.
+Using "run_nb_state/4" (implementation given in appendix~\ref{app:ccnbstate}), the scope of this 
+impurity and the associated dangers of unprotected global mutable state are strictly limited to 
+the introduction of one mutable cell accessed via a carefully controlled computational effect,
+ with essentially the same interface as the backtrackable state effect provided by "run_state/4" in module
+"ccstate" (\secrf{ccstate}). 
 
 \subsection{Handling arbitrary predicate arity and mode}
 \label{sec:arity-and-mode}
@@ -419,13 +378,21 @@ using "numbervars/3". This replaces each distinct variable with a term "`&VAR'(N
 is an integer. Thus, in the examples above "foo(a,X,Y)" will be represented as "foo(a,`&VAR'(0),`&VAR'(1))",
 while "foo(a,X,X)" will be represented as "foo(a,`&VAR'(0),`&VAR'(0))". 
 
-Ground terms representing variant classess can be
-used as keys to their associated tables in the non-backtrackable environment effect 
-described in \secrf{ccnbenv}. Because the key is derived from the predicate call, there is no need
+Ground terms representing variant classes can be
+used as keys to their associated tables in an associative map which is in turn stored in
+the non-backtrackable mutable cell provided "run_nb_state/4", described in \secrf{ccnbstate}.
+Because the key is derived from the predicate call, there is no need
 for an explicit allocation step as there was in the functional version. Note also that the
 stratification in table access between the binary predicate at the first level
 and the input argument at the second is gone: each variant class combines predicate
 and `input' arguments, and is a separate entity at the top level.
+
+The `output' from calling a tabled predicate with a particular variant class consists of
+the bindings of the variables in the variant class, which may be distributed in any
+way across the parameters of the predicate, including possible partial instantiations
+of arguments. These variables can be extracted using the standard Prolog extra-logical
+predicate "term_variables/2". Each solution of a tabled variant class can then be represented
+as a list of the resulting values of these variables.
 
 \subsection{Using Prolog nondeterminism}
 
@@ -436,63 +403,96 @@ as a list of alternatives). This will have the additional effect that the soluti
 predicates can be explored incrementally, instead of being produced all at once.
 In the module "cctable" below, this behaviour is effected in two places. Firstly, if a call is made
 that already has a table entry (\ie a consumer call), instead of calling the consumer continuation
-for each solution already found and aggregating the final answers, line 30 extracts a solution
+for each solution already found and aggregating the final answers, line 27 extracts a solution
 from the solution set \emph{nondeterministically}, leaving a choice point, and then calls
 the consumer continuation. Any subsequent failure will result in backtracking to this choice
 point and application of the continuatuion to the next solution in the set.
 Secondly, in "producer/4" (line 37), "call(Generate, Y)" will be nondeterministic, and each time it succeeds,
 previously seen solutions can be ignored simply by failing in the attempt to add the value to the 
-solution set (lines 39 and 43),
+solution set (line 44),
 while previously unseen solutions are sent to the registered continuations (including the producer's
-continuation) by calling them \emph{disjunctively}, rather than conjunctively. It is significant that
-the producer's continution "KP" (line 40) is called \emph{first}: this means that from the outside,
+continuation) by calling them \emph{disjunctively}, rather than conjunctively (line 40). It is significant that
+the producer's continution "KP" is called \emph{first}: this means that from the outside,
 the tabled predicate produces answers lazily, before all solutions have been found.
 
 \begin{prolog-framed}[name=cctable,numbers=left]
   :- module(cctable, [run_tabled/1, cctabled/1]).
 
   :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
-  :- use_module(library(ccnbenv)).
+  :- use_module(library(ccnbstate), [run_nb_state/4, app/4]).
   :- use_module(library(rbutils)).
   :- use_module(lambdaki).
 
   :- meta_predicate cctabled(0).
-  ~cctabled~(Head) :- p_shift(tab, Head).
+  ~cctabled~(Work) :- p_shift(tab, Work).
 
   :- meta_predicate run_tabled(0).
   ~run_tabled~(Goal) :-
-     term_variables(Goal, Ans),
-     run_nb_env(run_tab(Goal, Ans)).
-
-  ~head_to_variant_class~(Head, VC) :-
-     copy_term_nat(Head, VC),
-     numbervars(VC, 0, _).
+     term_variables(Goal, Ans), 
+     rb_empty(Empty),
+     run_nb_state(state, run_tab(Goal, Ans), Empty, _).
 
   ~run_tab~(Goal, Ans) :-
      p_reset(tab, Goal, Status),
      cont_tab(Status, Ans).
 
   ~cont_tab~(done, _).
-  ~cont_tab~(susp(Head, Cont), Ans) :-
-     term_variables(Head,Y), 
+  ~cont_tab~(susp(Work, Cont), Ans) :-
+     term_variables(Work,Y), 
      K = \Y^Ans^Cont,
-     head_to_variant_class(Head, VC),
-     nb_app_or_new(VC, consumer(R,K), producer(R)),
-     ( R = solns(Solns) -> rb_gen(Y, _, Solns), run_tab(Cont, Ans)
-     ; R = producer     -> run_tab(producer(VC, \Y^Head, K, Ans), Ans)
+     numbervars_copy(Work, VC),
+     app(state, new_cont(VC, K, A)),
+     (  A = solns(Ys) -> rb_in(Y, _, Ys), run_tab(Cont, Ans)
+     ;  A = producer -> run_tab(producer(VC, \Y^Work, K, Ans), Ans)
      ).
 
-  ~consumer~(solns(Solns), K, tab(Solns,Ks), tab(Solns,[K|Ks])).
-  ~producer~(producer, tab(Solns,[])) :- rb_empty(Solns).
+  ~new_cont~(VC, K, solns(Ys), S1, S2) :- 
+     rb_upd(VC, tab(Ys,Ks), tab(Ys,[K|Ks]), S1, S2).
+  ~new_cont~(VC, K, producer, S1, S2) :-
+     rb_empty(Ys), 
+     rb_add(VC, tab(Ys,[K]), S1, S2).
 
   ~producer~(VC, Generate, KP, Ans) :-
      call(Generate, Y),
-     nb_app(VC, new_soln(Y,Ks)),
-     member(K,[KP|Ks]), 
-     call(K,Y,Ans).
+     app(state, new_soln(VC, Y, Ks)),
+     member(K,[KP|Ks]), call(K,Y,Ans).
 
-  ~new_soln~(Y, Ks, tab(Ys1,Ks), tab(Ys2,Ks)) :- rb_add(Y,t,Ys1,Ys2). 
+  ~new_soln~(VC, Y, Ks, S1, S2) :-
+     rb_upd(VC, tab(Ys1, Ks), tab(Ys2, Ks), S1, S2),
+     rb_add(Y, t, Ys1, Ys2).
+
+  ~numbervars_copy~(Work, VC) :-
+     copy_term_nat(Work, VC),
+     numbervars(VC, 0, _).
 \end{prolog-framed}
+A few other comments on this code are in order. 
+The state of the system is represented as an associative map (using red-black trees)
+of variant classes to table entries, each of which contains a set of solutions
+(also represented as a red-black tree) and a list of consumer continuations. Each instance
+of the state is an \emph{immutable} data structure: only the cell managed by
+"run_nb_state/4" is mutable, and its contents are replaced completely on each state
+transition. These transitions are managed using the predicates "new_cont/5"
+(to decide what to do with the newly captured continuation on each call to a tabled
+predicate) and "new_soln/4" (to decide what to do with a new solution from the 
+`worker' goal "Work". These two predicates are themselves pure, so that the effectful
+operation of changing the state is entirely contained within the "app/2" operator.
+
+The variable "Ans" is used 
+to represent the list of `outputs' from the top-level goal initially passed
+to "run_tabled/1"; this list is extracted from the goal using "term_variables/2".
+Similarly, "Y" represents the `outputs' of a given tabled variant class as a list
+of variables, which are eventually bound when solutions are found.
+
+The continuation "Cont" captured when
+calling a tabled predicate is a callable term, possibly containing variables shared
+with the worker goal, representing `inputs' which are expected to be 
+provided by the tabled predicate, and `outputs'
+which will be bound when the continuation is called. This continuation is stored
+in the table entry for a variant class in the form of a lambda term
+"\Y^Ans^Cont" (line 24) so that it can be called as a binary predicate and called multiple times
+without binding the variables in the lambda term. Similary, the worker goal 
+is passed to "producer/4" in the form of a lambda term "\Y^Work" (line 28),
+so that it can be called without binding any of these variables.
 
 \subsection{Program transformation}
 While the module "cctable" can be used as-is, by calling tabled goals using the
@@ -523,8 +523,55 @@ adding "`#'" to the name, while "path/2" is redirected to a tabled
 call of the renamed predicate.
 
 
+\section{Computational complexity and performance}
+
+The tabling library presented above achieves aim of providing
+idiomatic Prolog tabling while consisting almost entirely of pure, declarative Prolog.
+Unfortunately, its performance is terrible. This is because, maintaining non-backtrackable
+state in Prolog requires a certain amount of term copying, and in this case,
+because the state is held in a \emph{single} mutable variable, the \emph{entire} state is
+copied every on every transition, even if only a small component of the
+state has been changed. This creates a tension between the desire for logical purity,
+which drives us to minimise the number of points of mutation, and the desire for
+efficiency, which drives us to \emph{factorise} the mutable state across several
+points of mutation so that one component of the state can be modified without
+incurring the cost of copying the rest. Thus, at this point, development becomes a 
+question of pragmatic balance, attempting to achieve acceptable performance with
+a minimal departure from logical purity, which is, perhaps, a little unsatisfying from a 
+theoretical point of view, but seems to be unavoidable within the framework
+of current Prolog systems. 
+
+We can begin to quantify the costs of various copying operations as follows.
+Given an application involving tabled predicates, let $N_p$ be the number
+of `producer' calls; that is, the number of distinct variant classes in use.
+Let $R_c$ be the average number of `consumer' calls per producer; that is, the
+number of subsequent calls with a given variant class after the initial
+one. Finally, let "R_s" be the average number of solutions per producer.
+It is clear that the tabling system must call each continuation for each solution
+for each variant class, so that a minimal complexity for a computation that
+processes every solution of every tabled call is $O(N_p R_c R_s)$. However,
+decisions about to represent the state of the system can incur additional copying costs,
+some of which are quadratic in one or more of these metrics. For example, if a piece of
+state contains one item for each producer, then copying this state to add a new
+producer results in an $O(N_p^2 K_p)$ cost overall, where $K_p$ is the size
+of the data structure associated with each producer, which may be $O(1)$, $O(R_c)$,
+$O(R_s)$ or $O(R_c R_s)$ depending on the representation and factorisation chosen.
+
+\begin{tabular}{ll}
+  \emph{operation} & \emph{cost} \\
+  \hline
+  copying each continuation before calling    & $N_p N_s (1 + R_c)$ \\
+  copying each worker to get variant class    & $N_p(1 + R_c)$ \\
+  copying all producers to add a new producer & $N_p^2 K_p $ \\
+  % copying producer's worker to avoid binding answer & $N_p$ \\
+  copying all solutions to add a consumer     & $N_p R_c R_s$ \\
+  copying all continuations to add a solution & $N_p R_c R_s$ \\
+  copying all continuations to add a consumer & $N_p R_c^2$ \\
+  copying all solutions to add a solution     & $N_p R_s^2$ \\
+\end{tabular}
 
 \section{Related work}
+
 The implementation presented in this report was largely derived from the OCaml
 version reported by \cite{Abdallah2017a}, but it shares many similarities with
 the tabling library of \cite{DesouterVan-DoorenSchrijvers2015}. For example,
@@ -547,7 +594,7 @@ library that is currently included in SWI Prolog.
 \appendix
 \section{Supporting code}
 
-Modules "lambdaki", "ccstate", "ccnbenv" and "delimcc" can be found in the SWI Prolog
+Modules "lambdaki", "ccstate" and "delimcc" can be found in the SWI Prolog
 add-on package "genutils", which can be installed in SWI Prolog with the command
 "pack_install(genutils)". The rest of the code presented in this report can be
 found at \url{https://github.com/samer--/cctable}.
@@ -574,49 +621,40 @@ supporting only unary and binary application with no free variables.
   ~^~(A1, P, A1, A2) :- call(P, A2).
 \end{prolog-framed}
 
-\subsection{Non-backtrackable mutable environment}
-\label{sec:ccnbenv-imp}
+\subsection{Non-backtrackable mutable state}
+\label{app:ccnbstate}
 
-This module, "ccnbenv", provides an environment containing non-backtrackable mutable
-cells accessible via caller-determined keys, as discussed in \secrf{ccnbenv}.
-\begin{prolog-framed}[name=ccnbenv]
-  :- module(ccnbenv, [ run_nb_env/1, nb_app/2, nb_app_or_new/3 ]).
-
+The module "ccnbstate" implements a delimited context "run_nb_state/4"
+providing one piece of non-backtrackable mutable state, which can be modified with any binary predicate
+using "app/2" or retrieved using "get/2". The global variable used to store the state
+is protected from accidental interference and is destroyed when the stateful
+computation is finished. This code is included in the module "ccstate", which 
+is part of the SWI Prolog add-on package "genutils".
+\begin{prolog-framed}[name=ccnbstate]
+  :- module(ccnbstate, [run_nb_state/4, app/2, get/2]).
   :- use_module(library(delimcc)).
-  :- use_module(library(rbutils)).
 
-  :- meta_predicate run_nb_env(0).
-  ~run_nb_env~(Goal) :- 
-     gensym(nbenv_keys,R0), rb_empty(Empty),
-     setup_call_cleanup(nb_setval(R0,Empty), run(Goal,R0), cleanup(R0)).
+  :- meta_predicate app(+,2).
+  ~app~(Pr,P) :- p_shift(Pr, app(P)).
+  ~get~(Pr,P) :- p_shift(Pr, get(P)).
 
-  ~cleanup~(R0) :-
-     nb_getval(R0, KeyMap),
-     rb_map(KeyMap, nb_delete),
-     nb_delete(R0).
+  :- meta_predicate run_nb_state(+,0,+,-).
+  ~run_nb_state~(Pr, Goal, S1, S2) :-
+     gensym(nbs,K),
+     setup_call_cleanup( nb_setval(K, S1),
+                         (run(Pr, Goal, K), nb_getval(K, S2)),
+                         nb_delete(K)).
 
-  ~run~(Goal,R0) :- p_reset(nbenv,Goal,Status), cont(Status,R0).
-  ~cont~(done, _).
-  ~cont~(susp(P,Cont),R0) :- 
-    nb_getval(R0,M), call(P,R0,M), run(Cont,R0).
+  ~run~(Pr, Goal, K) :- p_reset(Pr, Goal, Status), cont(Status, Pr, K).
 
-  ~app~(K,P,_,M) :- 
-     rb_lookup(K,R,M),
-     nb_getval(R,X), call(P,X,Y), nb_setval(R,Y).
+  ~cont~(susp(R,Cont), Pr, K) :- handle(R,K), run(Pr, Cont, K).
+  ~cont~(done, _, _).
 
-  ~app_or_new~(K,P,New,R0,M1) :- 
-     rb_upd_or_ins(K,Act,M1,M2),
-     ( Act =update(R,R) -> nb_getval(R,X), call(P,X,Y), nb_setval(R,Y)
-     ; Act =insert(R)    -> gensym(nbenv,R), call(New,X),
-                            nb_setval(R0,M2), nb_setval(R,X)
-     ).
-
-  :- meta_predicate nb_app(+,2), nb_app_or_new(+,2,1).
-  ~nb_app~(K,P) :- p_shift(nbenv, app(K,P)).
-  ~nb_app_or_new~(K,P,Q) :- p_shift(nbenv, app_or_new(K,P,Q)).
+  ~handle~(get(S),K) :- nb_getval(K,S).
+  ~handle~(app(P),K) :- nb_getval(K,S1), call(P,S1,S2), nb_setval(K,S2).
 \end{prolog-framed}
 
-\subsection{Shallow program transformation}
+\subsection{Program transformation}
 \label{sec:ccmacros}
 
 The module "ccmaros" implements a shallow program transformation to support
@@ -627,7 +665,7 @@ as a metacall of the renamed predicate via cctable/1, which is
 assumed to be available in the module where the tabled precicate
 is defined. 
 
-\begin{prolog-framed}[name=ccnbenv,label=lst:ccnbenv]
+\begin{prolog-framed}[name=ccmacros,label=lst:ccmacros]
   :- module(ccmacros, [op(1150, fx, table)]).
   :- op(1150, fx, table).
 
