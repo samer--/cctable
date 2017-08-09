@@ -307,6 +307,7 @@ transplanted a functional idiom into Prolog. These deficiencies are remedied in 
 
 
 \section{Idiomatic Prolog tabling}
+\label{sec:idiomatic}
 
 \subsection{Tabling with non-backtrackable state}
 \label{sec:ccnbstate}
@@ -527,14 +528,15 @@ call of the renamed predicate.
 
 The tabling library presented above achieves aim of providing
 idiomatic Prolog tabling while consisting almost entirely of pure, declarative Prolog.
-Unfortunately, its performance is terrible. This is because, maintaining non-backtrackable
-state in Prolog requires a certain amount of term copying, and in this case,
+Unfortunately, its performance is terrible. This is because maintaining non-backtrackable
+state in Prolog requires a certain amount of term copying; not only is this relatively
+expensive in itself, it also tends to create more work for the garbage collector. In this case,
 because the state is held in a \emph{single} mutable variable, the \emph{entire} state is
 copied every on every transition, even if only a small component of the
 state has been changed. This creates a tension between the desire for logical purity,
 which drives us to minimise the number of points of mutation, and the desire for
-efficiency, which drives us to \emph{factorise} the mutable state across several
-points of mutation so that one component of the state can be modified without
+efficiency, which drives us to \emph{factorise} the mutable state into several
+independently modifiable pieces, so that one component of the state can be modified without
 incurring the cost of copying the rest. Thus, at this point, development becomes a 
 question of pragmatic balance, attempting to achieve acceptable performance with
 a minimal departure from logical purity, which is, perhaps, a little unsatisfying from a 
@@ -553,39 +555,144 @@ processes every solution of every tabled call is $O(N_p R_c R_s)$. However,
 decisions about to represent the state of the system can incur additional copying costs,
 some of which are quadratic in one or more of these metrics. For example, if a piece of
 state contains one item for each producer, then copying this state to add a new
-producer results in an $O(N_p^2 K_p)$ cost overall, where $K_p$ is the size
+producer results in an $O(N_p^2 K)$ cost overall, where $K$ is the size
 of the data structure associated with each producer, which may be $O(1)$, $O(R_c)$,
-$O(R_s)$ or $O(R_c R_s)$ depending on the representation and factorisation chosen.
+$O(R_s)$ or $O(R_c R_s)$ depending on the representation chosen.
+The following table summarises this and other costs that may apply:
 
+\begin{center}
 \begin{tabular}{ll}
   \emph{operation} & \emph{cost} \\
   \hline
-  copying each continuation before calling    & $N_p N_s (1 + R_c)$ \\
-  copying each worker to get variant class    & $N_p(1 + R_c)$ \\
-  copying all producers to add a new producer & $N_p^2 K_p $ \\
+  1. copying each continuation before calling    & $N_p R_c R_s$ \\
+  2. copying each worker to get variant class    & $N_p R_c$ \\
+  3. copying all producers to add a new producer & $N_p^2 K $ \\
   % copying producer's worker to avoid binding answer & $N_p$ \\
-  copying all solutions to add a consumer     & $N_p R_c R_s$ \\
-  copying all continuations to add a solution & $N_p R_c R_s$ \\
-  copying all continuations to add a consumer & $N_p R_c^2$ \\
-  copying all solutions to add a solution     & $N_p R_s^2$ \\
+  4. copying all solutions to add a consumer     & $N_p R_c R_s$ \\
+  5. copying all continuations to add a solution & $N_p R_c R_s$ \\
+  6. copying all continuations to add a consumer & $N_p R_c^2$ \\
+  7. copying all solutions to add a solution     & $N_p R_s^2$ \\
 \end{tabular}
+\end{center}
+%
+Of these, the first cannot be avoided, since a single continuation may need to
+be called multiple times with different `inputs' in the course of a computation.
+The others result from representational choices; for example, (3) applies when
+a single term contains information about all producers, which is the case
+in the implementation of \secrf{idiomatic}, with $K = R_c R_c$; (6) applies
+when all the continuations for a particular producer are stored in a single
+data structure, and similarly (7) when all the solutions from a producer are
+stored in one term. Indeed, the implementation of \secrf{idiomatic} suffers from
+all these costs, in particular the quadratic ones, which explains why it is so slow
+on all but the smallest problems.
 
-\section{Related work}
+There are many strategies for reducing or eliminating these copying costs,
+several of which are explored in the code repository accompanying this report.
+Although a complete description of these is beyond the scope of this report, a few
+strategies will be discussed below.
+
+Firstly, it is clear from the table of copying costs that for the optimal asymptotic 
+performance of $O(N_p R_c R_s)$ it is most important to avoid costs that are quadratic 
+in $N_p$, $R_c$ or $R_s$, as these will eventually dominate in large problems.
+The implementation $cctable4$ does this by using dynamic predicates "producer/1",
+"consumer/2" and "solution/2" to acheive a complete factorisation of the state of
+the system. Although the overheads associated with using dynamic predicates are larger
+than those for non-backtrackable global variables, the asymptotic complexity means
+that performance is surprisingly reasonable.
+
+Another way to avoid a quadratic cost of adding solutions is to use the SWI Prolog
+"tries" library, which allows a single immutable reference to point to a mutable
+associative map. This was introduced to support the tabling library currently included
+in SWI Prolog, but is sufficiently general to be used in implementation "cctable5", 
+both the map of variant classes to table entries and the set of solutions for each
+variant class.
+
+Tries are not a suitable data structure for the collection of continuations associated
+with each producer as it is not appropriate to treat them as a set or test them for equality.
+In "cctable6", a system of references to growable lists is introduced, built using
+the low-level "nb_linkval/2" operation to avoid copying the continuations already in the
+list.
+
+While developing approaches to managing the collection of continuations efficiently,
+it became clear that size of the continuation terms can be significant factor in some problems, 
+most obviously in the implementation of the Fibonacci function, where the total size
+of the continuations was found to grow quadratically with the size of the problem.
+Discussions with Jan Wielemaker, the principal author of SWI Prolog, lead to the conclusion
+that there were two causes of this. Firstly (and most easily dealt with) the inclusion
+of the producer's continuation ("KP") as a parameter to "producer/4" meant that continuations
+were being included as values in the stack frames as part of other subsequently captured continuations.
+This can be avoided by including the producer's continuation in the data structure used
+to store the consumers' continuations, rather than passing it as a parameter. As long
+as care is taken to keep the producer's continuation at the head of the list, the 
+`incremental' property of the system (with solutions being delivered as they are found)
+is preserved.
+
+The second cause was that the process of reactivating a continuation which then suspends itself
+resulting in a new continuation, which is then reactivated, which then suspends itself,
+and so on---results in continuations which gradually accumulate non-operative stack frames.
+This lead Jan Wielemaker to introduce optimisations, similar in spirit to \emph{tail call}
+optimisations, to remove these stack frames, which resulted in much improved performance
+on the Fibonacci benchmark.
+
+Fastest implementation so far:
+\begin{prolog-framed}[name=cctable8,numbers=left]
+  :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
+  :- use_module(ccnbref, [run_nb_ref/1, nbref_new/3]).
+  :- use_module(lambdaki).
+        
+  :- meta_predicate cctabled(0). 
+  ~cctabled~(Head) :- p_shift(tab, Head).
+        
+  :- meta_predicate run_tabled(0). 
+  ~run_tabled~(Goal) :-
+     term_variables(Goal, Ans), trie_new(Trie),
+     run_nb_ref(run_tab(Goal, Trie, Ans)),
+
+  ~run_tab~(Goal, Trie, Ans) :-                                                                                               
+     p_reset(tab, Goal, Status),                                                                                                 
+     cont_tab(Status, Trie, Ans).                                                                                           
+
+  ~cont_tab~(done, _, _, _).
+  ~cont_tab~(susp(Head, Cont), Trie, Ans) :-                                                                                  
+     term_variables(Head,Y), K = k(Y,Ans,Cont),                                                                                  
+     (  trie_lookup(Trie, Head, tab(Solns,Conts))
+     -> lref_add(Conts, K),
+        trie_gen(Solns, Y, _),
+        run_tab(Cont, Trie, Ans)
+     ;  lref_new(K, Conts),
+        trie_new(Solns),
+        trie_insert(Trie, Head, tab(Solns,Conts)),                                                                               
+        run_tab(producer(\Y^Head, Conts, Solns, Ans), Trie, Ans)                                                            
+     ).
+     
+  ~producer~(Generate, Conts, Solns, Ans) :-                                                                                       
+     call(Generate, Y),                                                                                                          
+     trie_insert(Solns, Y, t),
+     lref_get(Conts,Ks), member(k(Y,Ans,Cont),Ks),                                                                               
+     call(Cont). 
+
+  ~lref_new~(K0, Ref) :- nbref_new([K0], Ref).                                                                           
+  ~lref_get~(Ref, Xs) :- nb_getval(Ref, Ys), copy_term(Ys,Xs).                                                                     
+  ~lref_add~(Ref, K) :- 
+    nb_getval(Ref, [K0|Ks]), duplicate_term(K,K1), 
+    nb_linkval(Ref, [K0,K1|Ks]).
+\end{prolog-framed}
+
+\section{Related work and performance benchmarks}
 
 The implementation presented in this report was largely derived from the OCaml
 version reported by \cite{Abdallah2017a}, but it shares many similarities with
-the tabling library of \cite{DesouterVan-DoorenSchrijvers2015}. For example,
-the use of "numbervars/3" to represent variant classes as ground terms.
+the tabling library of \cite{DesouterVan-DoorenSchrijvers2015}; for example,
+the use of "numbervars/3" to represent variant classes as ground terms. In
+addition, the drive for acceptable asymptotic performance lead to the adoption
+of mutable tries for mananging both the collection of variant classes and the sets
+of solutions for each variant class.
 
-Trie vs balanced binary tree for variant classes and answer sets.
-
-Use of mutable data structures means that tabling algorithm is imperative.
-[Use of "nb_linkval"?] Much less term copying.
-
-In addition the
-predicate renaming methods using program transformation module "ccmacros" 
-(listed in the appendix~\ref{sec:ccmacros}) was derived from the version of Desouter et al.'s
-library that is currently included in SWI Prolog.
+However, there are several significant differences.
+The control structure and scheduling mechanism is more declarative, with less
+reliance on side effects. In terms of the amount of code it is much simpler.
+It delivering solutions incrementally, rather than having to collect them all before 
+delivering the first one.
 
 \section{Conclusions}
 
@@ -609,7 +716,7 @@ reducing the need to define trivial auxillary predicates. It is a simplified ver
 supporting only unary and binary application with no free variables.
 
 \begin{prolog-framed}[name=lambdaki]
-  :- module(lambdaki, [ (\)/2, (\)/3, (^)/3, (^)/4 ]).
+  :- module(lambdaki, [(\)/2, (\)/3, (^)/3, (^)/4]).
 
   :- meta_predicate \(1,?), \(2,?,?).
   :- meta_predicate ^(?,0,?), ^(?,1,?,?).
