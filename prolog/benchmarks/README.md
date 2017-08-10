@@ -7,11 +7,13 @@ The contents of this directory were derived from the Git repository
 
 To run a single benchmark, choose one the runners from
 
-	run-yap             YAP built in tabling
-	run-bp              B-Prolog built in tabling
-	run-swipl desouter  Desouter et al's Prolog library ported to SWI
-	run-swipl swipl     SWI Prolog's tabling library adapted from Desouter et al
-	run-swipl cctable   The continuation based library in this repository
+	run-yap                      YAP built in tabling
+	run-bp                       B-Prolog built in tabling
+	run-swipl desouter {pl,plc}  Desouter et al's library ported to SWI. Two implementations,
+	                             pl = direct port of original, all Prolog, on GitHub
+										  plc = hybrid Prolog/C optimised port now included with SWI Prolog
+	run-swipl cctable <imp>      One of the continuation based implementations in this repository, eg
+                                cctable2, cctable6, cctable8 etc.
 
 Then, call the runner from the shell prompt as follows:
 
@@ -19,19 +21,19 @@ Then, call the runner from the shell prompt as follows:
 
 For example,
 
-	$ ./run-swipl desouter 1 fib.pl 50
+	$ ./run-swipl desouter plc 1 fib.pl 50
 	$ ./run-yap 0 naiveReverse.pl 1000
 
 The first prints the results, the second does not. When printing results,
 Benchmarks with large result sets simply print the number of solutions, not
 the actual results.
 
-To run all the benchmarks, use `bench`
+To run all the benchmarks, use `bench` or minibench` for a smaller set.
 
 	$ ./bench "<runner>" <show_results?:{0,1}>
 
 Eg
 
 	$ ./bench run-yap 0
-	$ ./bench "run-swipl swipl" 0
+	$ ./minibench "run-swipl cctable cctable2" 0
 
