@@ -14,15 +14,10 @@
 :- thread_local producer/1, consumer/2, solution/2.
 
 %% cctabled(+Work:callable) is det.
-%  Call tabled version of Work. Only works in the context of run_tabled/2 or
-%  run_tabled/1, which provide the context for state and tabling effects.
 :- meta_predicate cctabled(0).
 cctabled(Work) :- p_shift(tab, Work).
 
 %% run_tabled(+G:callable) is det.
-%  Run G in a context which supports tabling. Tabled predicates are called
-%  using cctabled/1. Predicates can be statically annoted as tabled and calls
-%  cctabled/1 introduced using the source %  transformations in ccmacros.pl.
 :- meta_predicate run_tabled(0).
 run_tabled(Goal) :-
    term_variables(Goal, Ans),
