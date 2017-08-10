@@ -19,8 +19,9 @@ cctabled(Work) :- p_shift(tab, Work).
 :- meta_predicate run_tabled(0).
 run_tabled(Goal) :-
    term_variables(Goal, Ans),
-   with_trie(Trie, (b_setval('tab.trie', Trie), % ugly hack, only for get_tables/1
-                    with_nbref(NBR, run_tab(Goal, Trie, NBR, Ans)))).
+   setup_call_cleanup(nb_setval('tab.trie', Trie), % ugly hack, only for get_tables/1
+                      with_nbref(NBR, run_tab(Goal, Trie, NBR, Ans)),
+                      nb_delete('tab.trie')).
 
 run_tab(Goal, Trie, NBR, Ans) :-
    p_reset(tab, Goal, Status),
@@ -51,8 +52,6 @@ trie_variant_class_solutions(Trie, Work, Solns) :-
    trie_gen(Trie, Work, tab(SolnsTrie, _)),
    numbervars(Work, 0, _),
    findall(S, trie_gen(SolnsTrie,S,_), Solns).
-
-with_trie(Trie, Goal) :- setup_call_cleanup(trie_new(Trie), Goal, trie_destroy(Trie)).
 
 % ---  references to growable lists ----
 lref_new(NBR, Ref) :- nbref_new(NBR, [], Ref).
