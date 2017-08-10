@@ -1,4 +1,4 @@
-:- module(ccmacros, [op(1150,fx,table)]).
+:- module(ccmacros, [op(1150,fx,table), head_worker/2]).
 /** <module> Term expansions to support tabling
 
 This module implements a shallow program transformation to support
