@@ -19,5 +19,5 @@ function runall {
 	$1 pyramid500.pl 1
 }
 
-runall "./$1 $2" | tee "results/mini/$(sed -e 's/ /_/' <<< $1)-$(git describe --dirty --always)-$(hostname)-$(date +'%Y%m%dT%H%M%S')"
+runall "./$1 $2" | tee "results/mini/$(sed -e 's/ /_/g' <<< $1)-$(git describe --dirty --always)-$(hostname)-$(date +'%Y%m%dT%H%M%S')"
 
