@@ -10,9 +10,9 @@
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
 :- use_module(library(lambdaki)).
 
-%% cctabled(+Head:callable) is det.
+%% cctabled(+Work:callable) is det.
 :- meta_predicate cctabled(0).
-cctabled(Head) :- p_shift(tab, Head).
+cctabled(Work) :- p_shift(tab, Work).
 
 %% run_tabled(+G:callable) is det.
 %  Run G in a context which supports tabling. Tabled predicates are called
@@ -30,16 +30,16 @@ run_tab(Goal, Trie, NBR, Ans) :-
    cont_tab(Status, Trie, NBR, Ans).
 
 cont_tab(done, _, _, _).
-cont_tab(susp(Head, Cont), Trie, NBR, Ans) :-
-   term_variables(Head,Y), K = k(Y,Ans,Cont),
-   (  trie_lookup(Trie, Head, tab(Solns,Conts))
+cont_tab(susp(Work, Cont), Trie, NBR, Ans) :-
+   term_variables(Work,Y), K = k(Y,Ans,Cont),
+   (  trie_lookup(Trie, Work, tab(Solns,Conts))
    -> lref_add(Conts, K),
       trie_gen(Solns, Y, _),
       run_tab(Cont, Trie, NBR, Ans)
    ;  lref_new(NBR, K, Conts),
       trie_new(Solns),
-      trie_insert(Trie, Head, tab(Solns,Conts)),
-      run_tab(producer(\Y^Head, Conts, Solns, Ans), Trie, NBR, Ans)
+      trie_insert(Trie, Work, tab(Solns,Conts)),
+      run_tab(producer(\Y^Work, Conts, Solns, Ans), Trie, NBR, Ans)
    ).
 
 producer(Generate, Conts, Solns, Ans) :-
@@ -53,10 +53,10 @@ lref_add(Ref, K) :- duplicate_term(K,K1), nb_getval(Ref, [K0|Ks]), nb_linkval(Re
 
 get_tables(TablesTree) :-
    nb_getval('tab.trie', Trie),
-   findall(Head-SL, trie_variant_class_solutions(Trie, Head, SL), Tables),
+   findall(Work-SL, trie_variant_class_solutions(Trie, Work, SL), Tables),
    list_to_rbtree(Tables, TablesTree).
 
-trie_variant_class_solutions(Trie, Head, Solns) :-
-   trie_gen(Trie, Head, tab(SolnsTrie, _)),
-   numbervars(Head, 0, _),
+trie_variant_class_solutions(Trie, Work, Solns) :-
+   trie_gen(Trie, Work, tab(SolnsTrie, _)),
+   numbervars(Work, 0, _),
    findall(S, trie_gen(SolnsTrie,S,_), Solns).

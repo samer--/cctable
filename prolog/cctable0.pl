@@ -17,11 +17,11 @@
 :- use_module(library(lambdaki)).
 
 
-%% cctabled(+Head:callable) is det.
-%  Call tabled version of Head. Only works in the context of run_tabled/2 or
+%% cctabled(+Work:callable) is det.
+%  Call tabled version of Work. Only works in the context of run_tabled/2 or
 %  run_tabled/1, which provide the context for state and tabling effects.
 :- meta_predicate cctabled(0).
-cctabled(Head) :- p_shift(tab, Head).
+cctabled(Work) :- p_shift(tab, Work).
 
 %% run_tabled(+G:callable, -Tables:rbtree) is det.
 %% run_tabled(+G:callable) is det.
@@ -40,10 +40,10 @@ run_tab(Goal, Ans) :-
    cont_tab(Status, Ans).
 
 cont_tab(done, _).
-cont_tab(susp(Head, Cont), Ans) :-
-   term_variables(Head,Y), K= \Y^Ans^Cont,
+cont_tab(susp(Work, Cont), Ans) :-
+   term_variables(Work,Y), K= \Y^Ans^Cont,
    get(Tabs1),
-   numbervars_copy(Head, Variant),
+   numbervars_copy(Work, Variant),
    (  rb_update(Tabs1, Variant, tab(Solns,Ks), tab(Solns,[K|Ks]), Tabs2)
    -> set(Tabs2),
       rb_in(Y, _, Solns),
@@ -51,7 +51,7 @@ cont_tab(susp(Head, Cont), Ans) :-
    ;  rb_empty(Solns),
       rb_insert_new(Tabs1, Variant, tab(Solns,[]), Tabs2),
       set(Tabs2),
-      run_tab(producer(Variant, \Y^Head, K, Ans), Ans)
+      run_tab(producer(Variant, \Y^Work, K, Ans), Ans)
    ).
 
 producer(Variant, Generate, KP, Ans) :-

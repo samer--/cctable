@@ -13,11 +13,11 @@
 :- use_module(library(lambdaki)).
 
 
-%% cctabled(+Head:callable) is det.
-%  Call tabled version of Head. Only works in the context of run_tabled/2 or
+%% cctabled(+Work:callable) is det.
+%  Call tabled version of Work. Only works in the context of run_tabled/2 or
 %  run_tabled/1, which provide the context for state and tabling effects.
 :- meta_predicate cctabled(0).
-cctabled(Head) :- p_shift(tab, Head).
+cctabled(Work) :- p_shift(tab, Work).
 
 %% run_tabled(+G:callable) is det.
 %  Run G in a context which supports tabling. Tabled predicates are called
@@ -35,13 +35,13 @@ run_tab(Goal, Trie, Ans) :-
    cont_tab(Status, Trie, Ans).
 
 cont_tab(done, _, _).
-cont_tab(susp(Head, Cont), Trie, Ans) :-
-   term_variables(Head,Y), K = k(Y,Ans,Cont),
-   numbervars_copy(Head, VC),
+cont_tab(susp(Work, Cont), Trie, Ans) :-
+   term_variables(Work,Y), K = k(Y,Ans,Cont),
+   numbervars_copy(Work, VC),
    (  trie_lookup(Trie, VC, tab(Solns,Ks))
    -> trie_update(Trie, VC, tab(Solns,[K|Ks])), % !! potentially expensive copy here
       trie_gen(Solns, Y, _), run_tab(Cont, Trie, Ans) % should we copy Y or stick to grounds?
-   ;  run_tab(producer(VC, \Y^Head, K, Trie, Ans), Trie, Ans)
+   ;  run_tab(producer(VC, \Y^Work, K, Trie, Ans), Trie, Ans)
    ).
 
 producer(VC, Generate, KP, Trie, Ans) :-

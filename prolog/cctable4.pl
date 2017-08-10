@@ -12,11 +12,11 @@
 
 :- thread_local producer/1, consumer/2, solution/2.
 
-%% cctabled(+Head:callable) is det.
-%  Call tabled version of Head. Only works in the context of run_tabled/2 or
+%% cctabled(+Work:callable) is det.
+%  Call tabled version of Work. Only works in the context of run_tabled/2 or
 %  run_tabled/1, which provide the context for state and tabling effects.
 :- meta_predicate cctabled(0).
-cctabled(Head) :- p_shift(tab, Head).
+cctabled(Work) :- p_shift(tab, Work).
 
 %% run_tabled(+G:callable) is det.
 %  Run G in a context which supports tabling. Tabled predicates are called
@@ -37,12 +37,12 @@ run_tab(Goal, Ans) :-
    cont_tab(Status, Ans).
 
 cont_tab(done, _).
-cont_tab(susp(Head, Cont), Ans) :-
-   term_variables(Head,Y), K = k(Y,Ans,Cont),
-   numbervars_copy(Head, VC),
+cont_tab(susp(Work, Cont), Ans) :-
+   term_variables(Work,Y), K = k(Y,Ans,Cont),
+   numbervars_copy(Work, VC),
    (  producer(VC)
    -> assert(consumer(VC, K)), solution(VC,Y), run_tab(Cont, Ans)
-   ;  assert(producer(VC)), run_tab(producer(VC, \Y^Head, K, Ans), Ans)
+   ;  assert(producer(VC)), run_tab(producer(VC, \Y^Work, K, Ans), Ans)
    ).
 
 producer(VC, Generate, KP, Ans) :-

@@ -14,11 +14,11 @@
 :- use_module(library(lambdaki)).
 
 
-%% cctabled(+Head:callable) is det.
-%  Call tabled version of Head. Only works in the context of run_tabled/2 or
+%% cctabled(+Work:callable) is det.
+%  Call tabled version of Work. Only works in the context of run_tabled/2 or
 %  run_tabled/1, which provide the context for state and tabling effects.
 :- meta_predicate cctabled(0).
-cctabled(Head) :- p_shift(tab, Head).
+cctabled(Work) :- p_shift(tab, Work).
 
 %% run_tabled(+G:callable) is det.
 %  Run G in a context which supports tabling. Tabled predicates are called
@@ -34,12 +34,12 @@ run_tab(Goal, Ans) :-
    cont_tab(Status, Ans).
 
 cont_tab(done, _).
-cont_tab(susp(Head, Cont), Ans) :-
-   term_variables(Head,Y), K = \Y^Ans^Cont,
-   numbervars_copy(Head, VC),
+cont_tab(susp(Work, Cont), Ans) :-
+   term_variables(Work,Y), K = \Y^Ans^Cont,
+   numbervars_copy(Work, VC),
    nb_app_or_new(VC, new_consumer(Res,K), new_producer(Res)),
    (  Res = solns(Solns) -> rb_in(Y, _, Solns), run_tab(Cont, Ans)
-   ;  Res = new_producer -> run_tab(producer(VC, \Y^Head, K, Ans), Ans)
+   ;  Res = new_producer -> run_tab(producer(VC, \Y^Work, K, Ans), Ans)
    ).
 
 new_consumer(solns(Solns), K, tab(Solns,Ks), tab(Solns,[K|Ks])).
