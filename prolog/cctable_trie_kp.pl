@@ -1,7 +1,7 @@
 :- module(cctable8, [run_tabled/1, cctabled/1, get_tables/1]).
 /** <module> Tabling using delimited control
 
-   This version is based on cctable6, but storing the producer
+   This version is based on cctable_trie, but storing the producer
    continuation in the mutable continuations list along with the
    consumers. This reduces the size of the captured continuations.
 */

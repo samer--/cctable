@@ -1,7 +1,7 @@
 :- module(cctable2, [run_tabled/1, cctabled/1, get_tables/1]).
 /** <module> Tabling using multi-prompt delimited control
 
-   Similar to cctable, avoiding double copy of continuations by relying
+   Similar to cctable_env, avoiding double copy of continuations by relying
    on copying in nb_setval/2.
 */
 
