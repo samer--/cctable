@@ -1,2 +1,2 @@
 #!/bin/sh
-cpp -P -DSIZE=$3 < $2 | bprolog -g "['harness/bprolog.pl'],main($1)" 2>/dev/null | grep '^@' | sed -e 's/@ //'
+cpp -P -DSIZE=$3 < $2 | bprolog -g "['harness/bprolog.pl'],main($1)" | grep '^@' | sed -e 's/@ //'
