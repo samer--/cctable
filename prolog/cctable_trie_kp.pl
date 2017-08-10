@@ -26,7 +26,7 @@ run_tab(Goal, Trie, Ans) :-
    p_reset(tab, Goal, Status),
    cont_tab(Status, Trie, Ans).
 
-cont_tab(done, _, _, _).
+cont_tab(done, _, _).
 cont_tab(susp(Work, Cont), Trie, Ans) :-
    term_variables(Work,Y), K = k(Y,Ans,Cont),
    (  trie_lookup(Trie, Work, tab(Solns,Conts))
