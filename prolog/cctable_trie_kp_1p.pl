@@ -1,4 +1,4 @@
-:- module(cctable_trie_nl_kp_1p, [run_tabled/1, cctabled/1, get_tables/1]).
+:- module(cctable_trie_kp_1p, [run_tabled/1, cctabled/1, get_tables/1]).
 /** <module> Tabling using delimited control
 
    This version is based on cctable_trie, but storing the producer

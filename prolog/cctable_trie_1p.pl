@@ -1,4 +1,4 @@
-:- module(cctable_trie_nl_1p, [run_tabled/1, cctabled/1, get_tables/1]).
+:- module(cctable_trie_1p, [run_tabled/1, cctabled/1, get_tables/1]).
 /** <module> Tabling using multi-prompt delimited control
 
    This version is based on cctable5 (using tries) but now
