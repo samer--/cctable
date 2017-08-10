@@ -1,4 +1,4 @@
-:- module(cctable4, [run_tabled/1, cctabled/1, get_tables/1]).
+:- module(cctable_db_nl_kp_1p, [run_tabled/1, cctabled/1, get_tables/1]).
 /** <module> Tabling using delimited control (dynamic database)
 
    This version is based on cctable4, but takes the producer continuation out of

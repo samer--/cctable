@@ -1,8 +1,9 @@
-:- module(cctable4, [run_tabled/1, cctabled/1, get_tables/1]).
+:- module(cctable_db_nl_1p, [run_tabled/1, cctabled/1, get_tables/1]).
 /** <module> Tabling using delimited control
 
    This module provides a declarative implementation of tabling using delimited control.
    This version uses thread local dynamic predicates to manage the table state.
+   Also only 1 prompt and no lambda copying continuations.
 */
 
 :- use_module(library/terms,    [numbervars_copy/2]).

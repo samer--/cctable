@@ -1,4 +1,4 @@
-:- module(cctable3, [run_tabled/1, cctabled/1, get_tables/1]).
+:- module(cctable_env_nl_1p, [run_tabled/1, cctabled/1, get_tables/1]).
 /** <module> Tabling using delimited control
 
    This module provides a declarative implementation of tabling using delimited continuations.
