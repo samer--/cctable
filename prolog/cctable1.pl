@@ -3,8 +3,7 @@
 
    This module provides a declarative implementation of tabling using delimited
    continuations to manage the state of the tables and to implement tabling
-   itself. Similar to cctable0, but using a much faster system for managing
-   nonbacktrackable state.
+   itself. State factorised by variant class using ccnbenv.
 */
 
 :- use_module(library/terms,    [numbervars_copy/2]).
