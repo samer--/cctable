@@ -18,7 +18,7 @@ cctabled(Work) :- p_shift(tab, Work).
 %% run_tabled(+G:callable) is det.
 :- meta_predicate run_tabled(0).
 run_tabled(Goal) :-
-   term_variables(Goal, Ans),
+   term_variables(Goal, Ans), trie_new(Trie),
    setup_call_cleanup(nb_setval('tab.trie', Trie), % ugly hack, only for get_tables/1
                       run_nb_ref(run_tab(Goal, Trie, Ans)),
                       nb_delete('tab.trie')).
