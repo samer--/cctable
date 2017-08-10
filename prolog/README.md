@@ -2,13 +2,13 @@
 
 Many variations. Summary of implementation strategies and features:
 
-	- _mono_ means use a monolithic (single term) state.
-	- _env_ means use a non-backtrackable environment to map variant classes to table entries
-	- _trie_ means using trie for variant class map and solutions, and using lref for continuations.
-	- _db_ means using dynamic database for state
-	- _lc_ means use lambdas for representing continuations (incurs one copy per use)
-	- _kp_ means put producer continuation in with the rest instead of passing to producer
-	- _1p_ means single prompt implementation (can lead to unsafe interactions between multiple contexts).
+- _mono_ means use a monolithic (single term) state.
+- _env_ means use a non-backtrackable environment to map variant classes to table entries
+- _trie_ means using trie for variant class map and solutions, and using lref for continuations.
+- _db_ means using dynamic database for state
+- _lc_ means use lambdas for representing continuations (incurs one copy per use)
+- _kp_ means put producer continuation in with the rest instead of passing to producer
+- _1p_ means single prompt implementation (can lead to unsafe interactions between multiple contexts).
 
 - cctable_lc
 : Monolithic state. Very slow due to state copying.
