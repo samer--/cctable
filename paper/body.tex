@@ -634,7 +634,10 @@ This lead Jan Wielemaker to introduce optimisations, similar in spirit to \emph{
 optimisations, to remove these stack frames, which resulted in much improved performance
 on the Fibonacci benchmark.
 
-Fastest implementation so far:
+The fastest (double prompt) implementation so far, which should reach optimal asymptotic complexity
+once the continuation growth issue is dealt with is given below. Continuations are represented using
+the "k/3" functor instead of lambda terms, since copying them in one go (in "lref_get/2") is faster
+than copying individually when calling lambda terms. 
 \begin{prolog-framed}[name=cctable8,numbers=left]
   :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
   :- use_module(ccnbref, [run_nb_ref/1, nbref_new/3]).
