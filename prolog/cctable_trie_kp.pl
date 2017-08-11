@@ -1,11 +1,11 @@
-:- module(cctable_trie_kp_1p, [run_tabled/1, cctabled/1, get_tables/1]).
+:- module(cctable_trie_kp, [run_tabled/1, cctabled/1, get_tables/1]).
 /** <module> Tabling using delimited control
 
    This version is based on cctable_trie, but storing the producer
    continuation in the mutable continuations list along with the
    consumers. This reduces the size of the captured continuations.
    It also cleans out some inactive frames from the continuations.
-   Single prompt version using with_nbref/2.
+   Double prompt version using run_nb_ref/2.
 */
 
 :- use_module(library/cctools,  [clean_cont/2]).

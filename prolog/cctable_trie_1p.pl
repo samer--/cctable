@@ -5,6 +5,7 @@
    the list of consumer continations for each variant class is
    represented as an immutable reference to a mutable list
    which cheap to grow, avoiding a quadratic update cost.
+   Single prompt version.
 */
 
 :- use_module(library/nbref, [with_nbref/2, nbref_new/3]).

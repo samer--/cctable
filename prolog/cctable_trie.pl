@@ -1,10 +1,11 @@
-:- module(cctable_trie_1p, [run_tabled/1, cctabled/1, get_tables/1]).
+:- module(cctable_trie, [run_tabled/1, cctabled/1, get_tables/1]).
 /** <module> Tabling using multi-prompt delimited control
 
    This version is based on cctable5 (using tries) but now
    the list of consumer continations for each variant class is
    represented as an immutable reference to a mutable list
    which cheap to grow, avoiding a quadratic update cost.
+   Double prompt version.
 */
 
 :- use_module(library/ccnbref,  [run_nb_ref/1, nbref_new/2]).

@@ -5,7 +5,7 @@
    continuation in the mutable continuations list along with the
    consumers. This reduces the size of the captured continuations.
    It also cleans out some inactive frames from the continuations.
-   Double prompt version using run_nb_ref/1.
+   Single prompt version using with_nbref/2.
 */
 
 :- use_module(library/cctools,  [clean_cont/2]).
