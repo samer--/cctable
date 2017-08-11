@@ -1,6 +1,4 @@
-report(Show, Name, Time, Result) :-
-   format('~w: ~`.t time = ~w ms~60|', [Name, Time]),
-   (Show=1 -> format(' -- ~w\n', [Result]); nl).
+:- consult(common).
 
 run_case(call(Goal,Res), answer(Res), Time)    :- time(Goal, Time).
 run_case(ignore(Goal), ignored, Time)          :- time(Goal, Time).

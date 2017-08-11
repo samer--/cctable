@@ -1,10 +1,10 @@
+:- consult(common).
 :- consult(user).
 
 main(Show) :-
    case(Name, Case),
    run_case(Case,Result,Time),
-   format('~w: ~`.t time= ~w ms~60|', [Name, Time]),
-   (Show=1 -> format(' -- ~w\n', [Result]); nl),
+   report(Show, yap, Name, Time, Result).
    halt.
 
 run_case(ignore(Goal), ignored, Time) :-

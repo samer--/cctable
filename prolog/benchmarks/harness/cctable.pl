@@ -9,4 +9,5 @@ main(Show) :-
    case(Name, Case),
    run_case_limited(90, Case, _, Time1), !, garbage_collect,
    run_case_limited(240, Case, Result, Time2),
-   report(Show, Name, [Time1,Time2], Result).
+   current_prolog_flag(argv, [Imp,_]),
+   report(Show, Imp, Name, [Time1,Time2], Result).
