@@ -30,10 +30,11 @@ the actual results.
 
 To run all the benchmarks, use `bench` or minibench` for a smaller set.
 
-	$ ./bench "<runner>" <show_results?:{0,1}>
+	$ ./bench "<runner>" <show_results?:{0,1}> <results-folder>
 
+The results folder will be created if necessary.
 Eg
 
-	$ ./bench run-yap 0
-	$ ./minibench "run-swipl cctable cctable2" 0
+	$ ./bench run-yap 0 results/full
+	$ ./minibench "run-swipl cctable cctable2" 0 results/mini
 
