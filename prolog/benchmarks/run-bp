@@ -1,2 +1,2 @@
-#!/bin/sh
+#!/bin/bash
 cpp -P -DSIZE=$3 < $2 | bprolog -g "['harness/bprolog.pl'],main($1)" | grep '^@' | sed -e 's/@ //'

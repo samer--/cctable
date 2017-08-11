@@ -1,1 +1,2 @@
+#!/bin/bash
 cpp -P -DSIZE=$3 < $2 | yap -q -l harness/yap.pl -g "main($1)" 2>/dev/null

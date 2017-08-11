@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Usage: ./tests <test-runner> <show-results?>
 # <test-runner> is one of test-yap, test-swipl etc.
 # <show-result?> is 1 to show them or 0 to not.
