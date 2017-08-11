@@ -4,9 +4,12 @@
    This version is based on cctable_trie, but storing the producer
    continuation in the mutable continuations list along with the
    consumers. This reduces the size of the captured continuations.
+   It also cleans out some inactive frames from the continuations.
+   Double prompt version using run_nb_ref/1.
 */
 
-:- use_module(library/nbref, [with_nbref/2, nbref_new/3]).
+:- use_module(library/cctools,  [clean_cont/2]).
+:- use_module(library/nbref,    [with_nbref/2, nbref_new/3]).
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
 :- use_module(library(lambdaki)).
 
@@ -27,7 +30,8 @@ run_tab(Goal, Trie, NBR, Ans) :-
    cont_tab(Status, Trie, NBR, Ans).
 
 cont_tab(done, _, _, _).
-cont_tab(susp(Work, Cont), Trie, NBR, Ans) :-
+cont_tab(susp(Work, Cont0), Trie, NBR, Ans) :-
+   clean_cont(Cont0, Cont),
    term_variables(Work,Y), K = k(Y,Ans,Cont),
    (  trie_lookup(Trie, Work, tab(Solns,Conts))
    -> lref_add(Conts, K),
