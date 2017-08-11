@@ -30,6 +30,6 @@ function runall {
 	$1 testJoins.pl 1
 }
 
-outfile = "results/mini/$(sed -e 's/ /_/g' <<< $1)-$(git describe --dirty --always)-$(hostname)-$(date +'%Y%m%dT%H%M%S')"
+outfile="results/mini/$(sed -e 's/ /_/g' <<< $1)-$(git describe --dirty --always)-$(hostname)-$(date +'%Y%m%dT%H%M%S')"
 echo "Writing results to $outfile"
 runall "./$1 $2" | tee "$outfile"
