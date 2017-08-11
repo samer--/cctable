@@ -507,7 +507,7 @@ in \secrf{ccmemo} can be written (now using DCG notation for "path/2") as:
   :- use_module(cctable).
   :- use_module(ccmacros).
 
-  ~path_memo~(Start, End) :- run_tab(path(Start,End)).
+  ~path_memo~(Start, End) :- run_tabled(path(Start,End)).
 
   :- table path/2.
   ~path~ --> edge; path, edge.
@@ -640,7 +640,7 @@ the "k/3" functor instead of lambda terms, since copying them in one go (in "lre
 than copying individually when calling lambda terms. 
 \begin{prolog-framed}[name=cctable8,numbers=left]
   :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
-  :- use_module(ccnbref, [run_nb_ref/1, nbref_new/3]).
+  :- use_module(ccnbref, [run_nb_ref/1, nbref_new/2]).
   :- use_module(lambdaki).
         
   :- meta_predicate cctabled(0). 
