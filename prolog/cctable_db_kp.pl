@@ -1,11 +1,13 @@
-:- module(cctable_db_1p, [run_tabled/1, cctabled/1, get_tables/1]).
-/** <module> Tabling using delimited control
+:- module(cctable_db_kp, [run_tabled/1, cctabled/1, get_tables/1]).
+/** <module> Tabling using delimited control (dynamic database)
 
-   This module provides a declarative implementation of tabling using delimited control.
-   This version uses thread local dynamic predicates to manage the table state.
-   Also only 1 prompt and no lambda copying continuations.
+   This version is based on cctable4, but takes the producer continuation out of
+   parameters to the producer predicate, which helps make the captured continuations 
+   smaller.  The producer continuation is kept at the head of the list by using 
+   assertz/1 to add further consumers.
 */
 
+:- use_module(library/cctools,  [clean_cont/2]).
 :- use_module(library/terms,    [numbervars_copy/2]).
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
 :- use_module(library(rbutils)).
@@ -18,6 +20,8 @@
 cctabled(Work) :- p_shift(tab, Work).
 
 %% run_tabled(+G:callable) is det.
+%  NB. instances of run_tabled/1 will use the same dynamic predicates and are
+%  not protected from interfering with each other, so only use one at a time.
 :- meta_predicate run_tabled(0).
 run_tabled(Goal) :-
    term_variables(Goal, Ans),
@@ -33,19 +37,21 @@ run_tab(Goal, Ans) :-
    cont_tab(Status, Ans).
 
 cont_tab(done, _).
-cont_tab(susp(Work, Cont), Ans) :-
+cont_tab(susp(Work, Cont0), Ans) :-
+   clean_cont(Cont0, Cont),
    term_variables(Work,Y), K = k(Y,Ans,Cont),
    numbervars_copy(Work, VC),
    (  producer(VC)
-   -> assert(consumer(VC, K)), solution(VC,Y), run_tab(Cont, Ans)
-   ;  assert(producer(VC)), run_tab(producer(VC, \Y^Work, K, Ans), Ans)
+   -> assertz(consumer(VC, K)), solution(VC,Y), run_tab(Cont, Ans)
+   ;  assert(producer(VC)), assert(consumer(VC,K)), 
+      run_tab(producer(VC, \Y^Work, Ans), Ans)
    ).
 
-producer(VC, Generate, KP, Ans) :-
+producer(VC, Generate, Ans) :-
    call(Generate, Y),
-   \+solution(VC, Y), % ground only!
+   \+solution(VC, Y),
    assert(solution(VC, Y)),
-   (KP=k(Y,Ans,Cont); consumer(VC, k(Y,Ans,Cont))),
+   consumer(VC, k(Y,Ans,Cont)),
    call(Cont).
 
 get_tables(Tables) :-

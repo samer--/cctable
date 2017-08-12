@@ -26,10 +26,10 @@ Many variations.
 - cctable_env_1p
 : Like cctable_env_nl, but not using delimited control to provide non-backtrackable state, hence 1 prompt
 
-- cctable_db_1p
+- cctable_db
 : Using thread local dynamic predicates to factorise state completely, avoiding quadratic costs, also no lambda copy and 1 prompt
 
-- cctable_db_kp_1p
+- cctable_db_kp
 : Using thread local dynamic predicates to factorise state completely, avoiding quadratic costs, also no lambda copy and 1 prompt
 Smaller continuations by not passing producer continuation as argument.
 
@@ -44,5 +44,5 @@ continuations to avoid passing it as an argument to `producer/4`, since this
 causes the size of the captured continuations to grow in long conjunctive chains
 of tabled predicates.
 
-Best so far is cctable_trie_kp_1p
+Best so far are cctable_trie_kp_1p and cctable_trie_kp.
 
