@@ -1,6 +1,6 @@
 \newcommand{\postscriptref}[1] {(\emph{see} \textbf{#1})}
   \providecommand{\url}[1] {\texttt{#1}}
-\begin{thebibliography}{27}
+\begin{thebibliography}{31}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -13,11 +13,32 @@ S.~Abdallah.
   passing) style.
 \newblock \emph{arXiv preprint arXiv:1707.04724}, 2017.
 
+\bibitem[Chen and Warren(1993)]{ChenWarren1993}
+W.~Chen and D.~S. Warren.
+\newblock Towards effective evaluation of general logic programs.
+\newblock In \emph{in the Proceedings of the 12th PODS}. Citeseer, 1993.
+
 \bibitem[Danvy and Filinski(1990)]{DanvyFilinski1990}
 O.~Danvy and A.~Filinski.
 \newblock Abstracting control.
 \newblock In \emph{Proceedings of the 1990 ACM conference on LISP and
   functional programming}, pages 151--160. ACM, 1990.
+
+\bibitem[de~Guzman et~al.(2008)de~Guzman, Carro, and
+  Hermenegildo]{GuzmanCarroHermenegildo2008}
+P.~C. de~Guzman, M.~Carro, and M.~V. Hermenegildo.
+\newblock A program transformation for continuation call-based tabled
+  execution.
+\newblock In M.~C.~L. {n}ares and B.~Demoen, editors, \emph{Proceedings of 8th
+  International Colloquium on Implementation of Constraint and Logic
+  Programming Systems (CICLOPS 2008)}, pages 75--90, Udine, December 2008.
+
+\bibitem[De~Guzm{\'a}n et~al.(2008)De~Guzm{\'a}n, Carro, Hermenegildo, Silva,
+  and Rocha]{De-GuzmanCarroHermenegildo2008}
+P.~C. De~Guzm{\'a}n, M.~Carro, M.~V. Hermenegildo, C.~Silva, and R.~Rocha.
+\newblock An improved continuation call-based implementation of tabling.
+\newblock In \emph{Practical Aspects of Declarative Languages}, pages 197--213.
+  Springer, 2008.
 
 \bibitem[Desouter et~al.(2015)Desouter, Van~Dooren, and
   Schrijvers]{DesouterVan-DoorenSchrijvers2015}
@@ -61,10 +82,11 @@ O.~Kiselyov.
 \newblock Delimited control in ocaml, abstractly and concretely.
 \newblock \emph{Theoretical Computer Science}, 435:\penalty0 56--76, 2012.
 
-\bibitem[Kiselyov and Shan(2009)]{KiselyovShan2009}
-O.~Kiselyov and C.-C. Shan.
-\newblock Embedded probabilistic programming.
-\newblock In \emph{Domain-specific languages}, pages 360--384. Springer, 2009.
+\bibitem[Leermakers(1993)]{Leermakers1993}
+R.~Leermakers.
+\newblock \emph{The Functional Treatment of Parsing}.
+\newblock International Series in Engineering and Computer Science. Kluwar
+  Academic Publishers, 1993.
 
 \bibitem[Liang et~al.(1995)Liang, Hudak, and Jones]{LiangHudakJones1995}
 S.~Liang, P.~Hudak, and M.~Jones.
@@ -109,6 +131,13 @@ F.~C. Pereira and D.~H. Warren.
 \newblock \emph{Artificial intelligence}, 13\penalty0 (3):\penalty0 231--278,
   1980.
 
+\bibitem[Pereira and Warren(1983)]{PereiraWarren1983}
+F.~C. Pereira and D.~H. Warren.
+\newblock Parsing as deduction.
+\newblock In \emph{Proceedings of the 21st annual meeting on Association for
+  Computational Linguistics}, pages 137--144. Association for Computational
+  Linguistics, 1983.
+
 \bibitem[Porter(1986)]{Porter1986}
 H.~H. Porter.
 \newblock Earley deduction.
@@ -142,19 +171,18 @@ H.~Tamaki and T.~Sato.
 \newblock In \emph{Third international conference on logic programming}, pages
   84--98. Springer, 1986.
 
+\bibitem[Tarau and Dahl(1994)]{TarauDahl1994}
+P.~Tarau and V.~Dahl.
+\newblock Logic programming and logic grammars with binarization and
+  first-order continuations.
+\newblock In \emph{LOPSTR'94: 4th Int. Workshop on Logic Program Synthesis and
+  Transformation, Pisa}, volume 883, 1994.
+
 \bibitem[Tarau and Dahl(1998)]{TarauDahl1998}
 P.~Tarau and V.~Dahl.
 \newblock Mobile threads through first order continuations.
 \newblock In \emph{{Proceedings of APPAI-GULP-PRODE'98}}, Coruna, Spain, July
   1998.
-
-\bibitem[Tarau and Neumerkel(1994)]{TarauNeumerkel1994}
-P.~Tarau and U.~Neumerkel.
-\newblock A {N}ovel {T}erm {C}ompression {S}cheme and {D}ata {R}epresentation
-  in the {B}in{WAM}.
-\newblock In M.~Hermenegildo and J.~Penjam, editors, \emph{Proceedings of
-  Programming Language Implementation and Logic Programming}, number 844 in
-  Lecture Notes in Computer Science, pages 73--87. Springer, Sept. 1994.
 
 \bibitem[Warren(1975)]{Warren1975}
 D.~H. Warren.

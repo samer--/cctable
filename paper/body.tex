@@ -2,19 +2,51 @@
 \section{Introduction and background}
 \seclab{intro}
 
-Tabling, or memoisation, is a well known technique for speeding up computations
+Tabling, or memoisation \citep{Michie1968} is a well known technique for speeding up computations
 by saving and reusing the results of earlier subcomputations instead of repeating
 them. In other contexts, this strategy is called `dynamic programming', and, when
 used effectively, can reduce algorithms with exponential time complexity to polynomial
-or linear complexity.
+or linear complexity. 
 
-Memoisation
-\cite{Michie1968}.
-Tabling, Earley deduction, OLDT and SLG
-\cite{Earley1970,Warren1975,PereiraWarren1980,Porter1986,TamakiSato1986}.
-Delimited continuations \cite{Felleisen1988,DanvyFilinski1990,Filinski1999,Shan2004,KiselyovShan2009,Kiselyov2012}.
-Memoising functional parser combinators \cite{Norvig1991,Lindgren1994,Johnson1995}.
-Continuations in Prolog \cite{TarauNeumerkel1994,TarauDahl1998,Neumerkel1995,SchrijversDemoenDesouter2013,DesouterVan-DoorenSchrijvers2015}.
+In the field of logic programming, memoisation is referred to as \emph{tabling},
+and usually includes the ability to handle recursive, non-deterministic predicates, including
+so-called \emph{left-recursive} predicates that would otherwise result in non-termination using 
+depth-first search strategies
+such as SLD resolution, as provided, for example, in Prolog. Alternative strategies
+such as OLDT resolution \citep{TamakiSato1986} and SLG resolution \citep{ChenWarren1993} have
+been available for some time in Prologs such as XSB and YAP, but it was recognised
+well before that the forms of deduction that these methods embody are closely related to
+the efficient parsing algorithm invented by \cite{Earley1970}, the generalisation of which
+was dubbed `Earley deduction' \citep{Warren1975,PereiraWarren1983,Porter1986}.
+
+In the functional programming community, the problem of efficient parsing has been
+addressed using memoising parser combinators \citep{Norvig1991,Leermakers1993}.
+\cite{Abdallah2017a} gives an overview of this approach and focusses on the method of
+\cite{Johnson1995}, which is particularly
+interesting in that it handles left-recursive grammars using essentially the same 
+mechanism as Earley's algorithm and, by extension, the OLDT and SLG resolution methods
+used in tabled Prologs. Those methods rely on the \emph{suspension} of chains of deduction,
+which can then be resumed under different conditions. Johnson's method (implemented in the
+functional programming language Scheme) uses continuation
+passing style \citep{SussmanSteele1975} to achieve the same effect, allowing threads of
+computation to be suspended and resumed multiple times. Indeed, transformation of a program
+into continuation passing style, or the use of continuation capturing control operators
+such as |call-with-current-continuation| in Scheme, is a very powerful approach
+to implementing many computational effects within a declarative language \cite{Filinski1999}.
+
+Continuation passing style has been investigated as a basis for implementing Prolog itself
+\citep{TarauDahl1994,Lindgren1994,Neumerkel1995} and for providing useful computational effects
+from within in Prolog \citep{TrauDahl1994a,TarauDahl1998}. 
+[Tabling with continuations: \cite{De-GuzmanCarroHermenegildo2008,GuzmanCarroHermenegildo2008}
+What about Ramesh and Chen (1994,1997)?]
+Recently, continuation capturing control operators have been implemented in hProlog and
+SWI Prolog \citep{SchrijversDemoenDesouter2013}, and subsequently used to implement
+tabling completely in Prolog, without any further low level support 
+\cite{DesouterVan-DoorenSchrijvers2015}. This report describes a similar approach, first
+translating \citepos{Johnson1995} functional memoisation into pure, declarative Prolog,
+and then making minimal changes to implement tabling as it is more usually seen in Prolog,
+while retaining most of the declarativeness of the functional version. [Contribution? Differences from
+previous methods?]
 
 The system presented here was developed using SWI Prolog \citep{WielemakerSchrijversTriska2012},
 which includes an implementation of delimited continuations
@@ -372,9 +404,12 @@ variables encountered in calls to the predicate, that is, treating calls which a
 For example, "foo(a,X,Y)" and "foo(a,U,V)" are variants of each other, but "foo(a,X,Y)",
 "foo(b,X,Y)" and "foo(a,X,X)" are not. Variant calls will have the same set of solutions and
 can share the same table. In the sequel, an equivalence class of calls which are all variants
-of each other will be called a `variant class'. The safest way to manipulate variant classess
-without resorting to extra-logical operations such as variable equivalence
-is to represent them as ground terms, which can be done
+of each other will be called a `variant class'.\footnote{It should be noted that manipulating terms on
+the basis of what variables they contain involves stepping up out of the pure, declarative
+fragment of Prolog in to pure Prolog's \emph{metalanguage}. The fact that Prolog serves as
+its own metalanguage means that this distinction is easily overlooked.} The safest way to manipulate 
+variant classess without resorting to xtra-logical operations such as variable equivalence
+is to represent them as ground terms as soon as possible, which can be done
 using "numbervars/3". This replaces each distinct variable with a term "`&VAR'(N)", where "N"
 is an integer. Thus, in the examples above "foo(a,X,Y)" will be represented as "foo(a,`&VAR'(0),`&VAR'(1))",
 while "foo(a,X,X)" will be represented as "foo(a,`&VAR'(0),`&VAR'(0))". 
@@ -392,7 +427,7 @@ The `output' from calling a tabled predicate with a particular variant class con
 the bindings of the variables in the variant class, which may be distributed in any
 way across the parameters of the predicate, including possible partial instantiations
 of arguments. These variables can be extracted using the standard Prolog extra-logical
-predicate "term_variables/2". Each solution of a tabled variant class can then be represented
+operation "term_variables/2". Each solution of a tabled variant class can then be represented
 as a list of the resulting values of these variables.
 
 \subsection{Using Prolog nondeterminism}
@@ -543,6 +578,7 @@ a minimal departure from logical purity, which is, perhaps, a little unsatisfyin
 theoretical point of view, but seems to be unavoidable within the framework
 of current Prolog systems. 
 
+\subsection{Complexity analysis}
 We can begin to quantify the costs of various copying operations as follows.
 Given an application involving tabled predicates, let $N_p$ be the number
 of `producer' calls; that is, the number of distinct variant classes in use.
@@ -594,22 +630,23 @@ strategies will be discussed below.
 Firstly, it is clear from the table of copying costs that for the optimal asymptotic 
 performance of $O(N_p R_c R_s)$ it is most important to avoid costs that are quadratic 
 in $N_p$, $R_c$ or $R_s$, as these will eventually dominate in large problems.
-The implementation $cctable4$ does this by using dynamic predicates "producer/1",
+The implementation $cctable_db$ does this by using dynamic predicates "producer/1",
 "consumer/2" and "solution/2" to acheive a complete factorisation of the state of
 the system. Although the overheads associated with using dynamic predicates are larger
 than those for non-backtrackable global variables, the asymptotic complexity means
-that performance is surprisingly reasonable.
+that performance on some of the benchmarks is surprisingly reasonable.
 
 Another way to avoid a quadratic cost of adding solutions is to use the SWI Prolog
 "tries" library, which allows a single immutable reference to point to a mutable
 associative map. This was introduced to support the tabling library currently included
-in SWI Prolog, but is sufficiently general to be used in implementation "cctable5", 
-both the map of variant classes to table entries and the set of solutions for each
+in SWI Prolog, but is sufficiently general to be used in implementation "cctable_trie", 
+for both the map of variant classes to table entries and the set of solutions for each
 variant class.
 
 Tries are not a suitable data structure for the collection of continuations associated
 with each producer as it is not appropriate to treat them as a set or test them for equality.
-In "cctable6", a system of references to growable lists is introduced, built using
+Hence, to avoid copying costs quadratic in the number of continuations per producer 
+in "cctable_trie", a system of references to growable lists is introduced, built using
 the low-level "nb_linkval/2" operation to avoid copying the continuations already in the
 list.
 
@@ -630,12 +667,18 @@ is preserved.
 The second cause was that the process of reactivating a continuation which then suspends itself
 resulting in a new continuation, which is then reactivated, which then suspends itself,
 and so on---results in continuations which gradually accumulate non-operative stack frames.
-This lead Jan Wielemaker to introduce optimisations, similar in spirit to \emph{tail call}
-optimisations, to remove these stack frames, which resulted in much improved performance
-on the Fibonacci benchmark.
+This lead Jan Wielemaker to introduce optimisations in the low level implementation of 
+"shift/1", similar in spirit to \emph{tail call}
+optimisations, to remove these stack frames. Coupled with some extra filtering of ineffectual
+continuation frames at the Prolog level, this solved the continuation growth problem 
+completely, resulting in approximately linear time complexity on the Fibonacci benchmark using
+the implementation "cctable_trie_kp".
+An equivalent modification was also applied to the dynamic database version 
+to get the implementation "cctable_db_kp".
 
-The fastest (double prompt) implementation so far, which should reach optimal asymptotic complexity
-once the continuation growth issue is dealt with is given below. Continuations are represented using
+\subsection{An improved implementation}
+
+The implementation "cctable_trie_kp" is given below. Continuations are represented using
 the "k/3" functor instead of lambda terms, since copying them in one go (in "lref_get/2") is faster
 than copying individually when calling lambda terms. 
 \begin{prolog-framed}[name=cctable8,numbers=left]
@@ -645,43 +688,78 @@ than copying individually when calling lambda terms.
         
   :- meta_predicate cctabled(0). 
   ~cctabled~(Head) :- p_shift(tab, Head).
-        
+
   :- meta_predicate run_tabled(0). 
   ~run_tabled~(Goal) :-
      term_variables(Goal, Ans), trie_new(Trie),
      run_nb_ref(run_tab(Goal, Trie, Ans)),
 
-  ~run_tab~(Goal, Trie, Ans) :-                                                                                               
-     p_reset(tab, Goal, Status),                                                                                                 
-     cont_tab(Status, Trie, Ans).                                                                                           
+  ~run_tab~(Goal, Trie, Ans) :-
+     p_reset(tab, Goal, Status),
+     cont_tab(Status, Trie, Ans).
 
   ~cont_tab~(done, _, _, _).
-  ~cont_tab~(susp(Head, Cont), Trie, Ans) :-                                                                                  
-     term_variables(Head,Y), K = k(Y,Ans,Cont),                                                                                  
+  ~cont_tab~(susp(Head, Cont), Trie, Ans) :-  
+     term_variables(Head,Y), K = k(Y,Ans,Cont),
      (  trie_lookup(Trie, Head, tab(Solns,Conts))
      -> lref_add(Conts, K),
         trie_gen(Solns, Y, _),
         run_tab(Cont, Trie, Ans)
      ;  lref_new(K, Conts),
         trie_new(Solns),
-        trie_insert(Trie, Head, tab(Solns,Conts)),                                                                               
-        run_tab(producer(\Y^Head, Conts, Solns, Ans), Trie, Ans)                                                            
+        trie_insert(Trie, Head, tab(Solns,Conts)),
+        run_tab(producer(\Y^Head, Conts, Solns, Ans), Trie, Ans)
      ).
-     
-  ~producer~(Generate, Conts, Solns, Ans) :-                                                                                       
-     call(Generate, Y),                                                                                                          
-     trie_insert(Solns, Y, t),
-     lref_get(Conts,Ks), member(k(Y,Ans,Cont),Ks),                                                                               
-     call(Cont). 
 
-  ~lref_new~(K0, Ref) :- nbref_new([K0], Ref).                                                                           
-  ~lref_get~(Ref, Xs) :- nb_getval(Ref, Ys), copy_term(Ys,Xs).                                                                     
+  ~producer~(Generate, Conts, Solns, Ans) :-
+     call(Generate, Y),
+     trie_insert(Solns, Y, t),
+     lref_get(Conts,Ks), member(k(Y,Ans,Cont),Ks),
+     call(Cont).
+
+  ~lref_new~(K0, Ref) :- nbref_new([K0], Ref).
+  ~lref_get~(Ref, Xs) :- nb_getval(Ref, Ys), copy_term(Ys,Xs).
   ~lref_add~(Ref, K) :- 
     nb_getval(Ref, [K0|Ks]), duplicate_term(K,K1), 
     nb_linkval(Ref, [K0,K1|Ks]).
 \end{prolog-framed}
 
-\section{Related work and performance benchmarks}
+\subsection{Benchmarks}
+
+Several of the implementation variations described above were tested on a selection
+of the benchmarks that were used by \cite{DesouterVan-DoorenSchrijvers2015} and
+compared with alternative tabling implementations. Two of these run in SWI Prolog:
+"desouter-pl" is \citepos{DesouterVan-DoorenSchrijvers2015} original tabling library
+ported from hProlog to SWI Prolog (available at \url{https://github/JanWielemaker/tabling_library}),
+and "desouter-plc" is the optimised version of this, with some components re-implemented
+in C for greater speed. In addition, the tabling implementations in two other Prologs,
+YAP and B-Prolog ("bp") were also tested, though it should be noted that these are both
+much faster Prologs in general and that in both tabling is implemented at a low level.
+The benchmarks themselves were derived from code available at \url{https://github/JanWielemaker/tabling_benchmarks}.
+
+[B-Prolog uses linear tabling, which is very fast in some problems but much slower in others.]
+
+
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{@{}c@{}c@{}}
+      \colfig[0.5]{fib(1000)}
+    & \colfig[0.5]{nrev(1000)}
+    \\
+      \colfig[0.5]{shuttle(2000)}
+    & \colfig[0.5]{ping_pong(10000)}
+    \\
+      \colfig[0.5]{recognise(20000)}
+    & \colfig[0.5]{monoidal}
+  \end{tabular}
+  \end{center}
+  \caption{Performance of several tabling implementations on a subset of benchmarks. The horizontal
+  axis is the reciprocal of the execution time in seconds, and so longer bars represent faster
+  performance. The timings for YAP have been excluded as they are in almost all cases the fastest.
+  \figlab{speed}}
+\end{figure}
+
+\section{Discussion and conclusions}
 
 The implementation presented in this report was largely derived from the OCaml
 version reported by \cite{Abdallah2017a}, but it shares many similarities with
@@ -697,7 +775,12 @@ reliance on side effects. In terms of the amount of code it is much simpler.
 It delivering solutions incrementally, rather than having to collect them all before 
 delivering the first one.
 
-\section{Conclusions}
+[Observations on performance?]
+
+[Importance of minimising copying?]
+
+[Future work: faster implementation of list of continuations, analogous to `worklists' in
+"desouter-plc" implementation.
 
 \appendix
 \section{Supporting code}
