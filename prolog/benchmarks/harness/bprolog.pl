@@ -1,10 +1,10 @@
-:- consult(common).
 :- consult(user).
+:- consult('harness/common.pl').
 
 main(Show) :-
    case(Name, Case),
    run_case(Case,Result,Time),
-   report(Show, bp, Name, Time, Result).
+   write('@ '), report(Show, bp, Name, Time, Result),
    halt.
 
 run_case(ignore(Goal), ignored, Time) :-
@@ -20,4 +20,3 @@ run_case(verify(Goal,Check), correct(R), Time) :-
 run_case(count(Goal), solutions(N), Time) :-
    run_case(call(findall(t,Goal,R), R), answer(Solns), Time),
    length(Solns,N).
-
