@@ -699,7 +699,8 @@ than copying individually when calling lambda terms.
      cont_tab(Status, Trie, Ans).
 
   ~cont_tab~(done, _, _, _).
-  ~cont_tab~(susp(Head, Cont), Trie, Ans) :-  
+  ~cont_tab~(susp(Head, Cont0), Trie, Ans) :-  
+     clean_cont(Cont0, Cont),
      term_variables(Head,Y), K = k(Y,Ans,Cont),
      (  trie_lookup(Trie, Head, tab(Solns,Conts))
      -> lref_add(Conts, K),
@@ -739,6 +740,11 @@ The benchmarks themselves were derived from code available at \url{https://githu
 
 [B-Prolog uses linear tabling, which is very fast in some problems but much slower in others.]
 
+[YAP doesn't support arbitrary precision arithmetic, so it cannot run the Fibonacci benchmark
+at the required sizes.]
+
+[The naive reverse benchmark doesn't actually benefit from tabling at all, as no call is
+ever made more than once. Thus, it measures the minimal overhead introduced by tabling.]
 
 \begin{figure}
   \begin{center}
