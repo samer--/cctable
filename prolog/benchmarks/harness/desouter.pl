@@ -9,4 +9,4 @@ main(Show) :-
    run_case(Case, _, Time1), abolish_all_tables,
    run_case(Case, Result, Time2),
    current_prolog_flag(argv, [Imp,_|_]),
-   report(Show, desouter-Imp, Name, [Time1,Time2], Result).
+   report(Show, desouter(Imp), Name, [Time1,Time2], Result).

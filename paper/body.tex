@@ -630,7 +630,7 @@ strategies will be discussed below.
 Firstly, it is clear from the table of copying costs that for the optimal asymptotic 
 performance of $O(N_p R_c R_s)$ it is most important to avoid costs that are quadratic 
 in $N_p$, $R_c$ or $R_s$, as these will eventually dominate in large problems.
-The implementation $cctable_db$ does this by using dynamic predicates "producer/1",
+The implementation "cctable_db" does this by using dynamic predicates "producer/1",
 "consumer/2" and "solution/2" to acheive a complete factorisation of the state of
 the system. Although the overheads associated with using dynamic predicates are larger
 than those for non-backtrackable global variables, the asymptotic complexity means
@@ -699,8 +699,7 @@ than copying individually when calling lambda terms.
      cont_tab(Status, Trie, Ans).
 
   ~cont_tab~(done, _, _, _).
-  ~cont_tab~(susp(Head, Cont0), Trie, Ans) :-  
-     clean_cont(Cont0, Cont),
+  ~cont_tab~(susp(Head, Cont), Trie, Ans) :-  
      term_variables(Head,Y), K = k(Y,Ans,Cont),
      (  trie_lookup(Trie, Head, tab(Solns,Conts))
      -> lref_add(Conts, K),
@@ -727,6 +726,19 @@ than copying individually when calling lambda terms.
 
 \subsection{Benchmarks}
 
+\begin{table}
+\small%
+\begin{center}
+\input{../prolog/benchmarks/timings}
+\end{center}
+\caption{Execution times for a variety of benchmarks using several tabling implementations.
+Times are milliseconds unless explicitly stated in seconds. In each row, the best time
+is typeset in boldface and the second best time is underlined. YAP does not include
+support for arbitrary precision integer arithmetic and so was not able to run
+the Fibonacci benchmark at the given sizes. A $\times$ indicates that the benchmark
+did not complete within the allowed time of 240 s.}
+\end{table}
+
 Several of the implementation variations described above were tested on a selection
 of the benchmarks that were used by \cite{DesouterVan-DoorenSchrijvers2015} and
 compared with alternative tabling implementations. Two of these run in SWI Prolog:
@@ -737,14 +749,6 @@ in C for greater speed. In addition, the tabling implementations in two other Pr
 YAP and B-Prolog ("bp") were also tested, though it should be noted that these are both
 much faster Prologs in general and that in both tabling is implemented at a low level.
 The benchmarks themselves were derived from code available at \url{https://github/JanWielemaker/tabling_benchmarks}.
-
-[B-Prolog uses linear tabling, which is very fast in some problems but much slower in others.]
-
-[YAP doesn't support arbitrary precision arithmetic, so it cannot run the Fibonacci benchmark
-at the required sizes.]
-
-[The naive reverse benchmark doesn't actually benefit from tabling at all, as no call is
-ever made more than once. Thus, it measures the minimal overhead introduced by tabling.]
 
 \begin{figure}
   \begin{center}
@@ -764,6 +768,24 @@ ever made more than once. Thus, it measures the minimal overhead introduced by t
   performance. The timings for YAP have been excluded as they are in almost all cases the fastest.
   \figlab{speed}}
 \end{figure}
+
+[B-Prolog uses linear tabling, which is very fast in some problems but much slower in others.]
+
+[YAP doesn't support arbitrary precision arithmetic, so it cannot run the Fibonacci benchmark
+at the required sizes.]
+
+Some of the benchmark execution times for YAP are reported as 0 ms in 
+\citep{DesouterVan-DoorenSchrijvers2015}. The code for running these
+benchmarks measured the time to produce the \emph{first} solution produced. YAP's
+tabling algorithm, like the one presented here, is able to produce solutions
+as they are found, whereas Desouter et al's algorithm (both implementations) finds
+all solutions before producing the first one. Hence the comparison is a bit misleading,
+and to produce the benchmarks table [ref], the code was modified to measure the
+time find all solutions. 
+
+[The naive reverse benchmark doesn't actually benefit from tabling at all, as no call is
+ever made more than once. Thus, it measures the minimal overhead introduced by tabling.]
+
 
 \section{Discussion and conclusions}
 

@@ -4,7 +4,7 @@
 main(Show) :-
    case(Name, Case),
    run_case(Case,Result,Time),
-   write('@ '), report(Show, bp, Name, Time, Result),
+   write('@ '), report(Show, bprolog, Name, Time, Result),
    halt.
 
 run_case(ignore(Goal), ignored, Time) :-

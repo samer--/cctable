@@ -1,0 +1,17 @@
+\newcommand\plh[1]{\lstinline[language=Prolog]{#1}}
+\begin{tabular}{@{}lrrrrrrrr@{}}
+ & \rotatebox{90}{\plh{yap}} & \rotatebox{90}{\plh{bprolog}} & \rotatebox{90}{\plh{desouter(plc)}} & \rotatebox{90}{\plh{desouter(pl)}} & \rotatebox{90}{\plh{cctable(db)}} & \rotatebox{90}{\plh{cctable(db)/kp}} & \rotatebox{90}{\plh{cctable(trie)}} & \rotatebox{90}{\plh{cctable(trie)/kp}}\\
+\hline{"monoidal"} & \underline{1.2 s} & \textbf{1.2 s} & 3.3 s & 35 s & 154 s & 129 s & 4.3 s & 4.2 s\\
+{"fib(500)"} & -- & \textbf{0} & \textbf{0} & 50 & 280 & 30 & 90 & \underline{10}\\
+{"fib(750)"} & -- & \textbf{0} & \underline{10} & 90 & 600 & 60 & 210 & \underline{10}\\
+{"fib(1000)"} & -- & \textbf{3} & \underline{10} & 110 & 1.1 s & 100 & 360 & 30\\
+{"nrev(500)"} & \textbf{17} & 63 & 120 & 1.5 s & \underline{50} & 90 & 80 & 90\\
+{"nrev(1000)"} & \textbf{71} & 263 & 490 & 5.7 s & \underline{210} & 340 & 320 & 440\\
+{"path_dfst(50)"} & \textbf{2} & \underline{5} & 50 & 540 & 1.9 s & 2.0 s & 80 & 70\\
+{"path_dfst_loop(50)"} & \textbf{15} & \underline{35} & 240 & 2.9 s & 23 s & 25 s & 1.1 s & 360\\
+{"ping_pong(10000)"} & \textbf{7} & 3.5 s & \underline{40} & 850 & 8.1 s & 7.4 s & 70 & 80\\
+{"pyramid(500)"} & \underline{60} & \textbf{58} & 270 & 6.4 s & $\times$ & $\times$ & 400 & 620\\
+{"recognise(20000)"} & \textbf{15} & 68 s & \underline{70} & 950 & 14 s & 14 s & 250 & 140\\
+{"shuttle(2000)"} & \textbf{3} & 239 & \underline{10} & 130 & 380 & 360 & 30 & 40\\
+{"shuttle(5000)"} & \textbf{6} & 1.5 s & \underline{30} & 380 & 2.3 s & 2.2 s & 60 & 70\\
+\hline\end{tabular}
