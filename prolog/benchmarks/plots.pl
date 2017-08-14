@@ -9,7 +9,7 @@
 :- multifile imp_case_time/3.
 
 loadall :- 
-   forall(find_files(in('results/pl/holly','*'), F),
+   forall(find_files(in('results/pl/holly2','*'), F),
 			 (writeln(loading:F), load_files([F],[]))).
 
 :- initialization loadall.
@@ -125,6 +125,18 @@ fmt_time(T) -->
    ; {TS is T/1000.0}, fmt('~0f s',[TS])
    ).
 
+tex_metrics_table -->
+   { findall(Case-[NP,NC,NS], metrics(Case,NP,NC,NS), Rows) },
+   @begin("tabular", "@{}lrrr@{}"), cr,
+   amp, seqmap_with_sep(amp, math, ["N_p", "N_c", "N_s"]), lbr,
+   @hline,
+   seqmap_with_sep(lbr, tex_metrics_row, Rows), lbr,
+   @hline,
+   @end("tabular"), cr.
+
+tex_metrics_row(Case-Vals) -->
+   pl(Case), amp, seqmap_with_sep(amp, wr, Vals).
+
 setof(Pred,Xs) :- setof(X,call(Pred,X),Xs).
 
 case_pdf_file(C, File) :-
@@ -132,3 +144,22 @@ case_pdf_file(C, File) :-
 
 refresh_table :-
    with_output_to_file('timings.tex', writedcg(tex_table([cctable_trie_1p, cctable_trie_kp_1p]))).
+
+refresh_metrics :-
+   with_output_to_file('metrics.tex', writedcg(tex_metrics_table)).
+
+% case, producers, consumers, solutions
+metrics(fib(1000),          1001,  998, 1001).
+metrics(fib(2000),          2001, 1998, 2001).
+metrics(nrev(500),          501,     0, 501).
+metrics(nrev(1000),         1001,    0, 1001).
+metrics(shuttle(2000),         1,    2, 4001).
+metrics(shuttle(5000),         1,    2, 10001).
+metrics(ping_pong(10000),      2,    2, 20002).
+metrics(path_dfst(50),       50, 2402, 2401).
+metrics(path_dfst(100),     100, 9802, 9801).
+metrics(path_dfst_loop(50),  50, 4803, 4802).
+metrics(recognise(20000),    2, 2, 20000).
+metrics(pyramid(500),       500, 995, 186751).
+metrics(test_joins,         1, 4, 371293).
+metrics(monoidal,           35, 42195, 2664).
