@@ -1,6 +1,6 @@
 \newcommand{\postscriptref}[1] {(\emph{see} \textbf{#1})}
   \providecommand{\url}[1] {\texttt{#1}}
-\begin{thebibliography}{31}
+\begin{thebibliography}{32}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -154,6 +154,12 @@ C.-c. Shan.
 \newblock Shift to control.
 \newblock In \emph{Proceedings of the 5th workshop on Scheme and Functional
   Programming}, pages 99--107, 2004.
+
+\bibitem[Shen et~al.(2001)Shen, Yuan, You, and Zhou]{ShenYuanYou2001}
+Y.-D. Shen, L.-Y. Yuan, J.-H. You, and N.-F. Zhou.
+\newblock Linear tabulated resolution based on prolog control strategy.
+\newblock \emph{Theory and Practice of Logic Programming}, 1\penalty0
+  (01):\penalty0 71--103, 2001.
 
 \bibitem[Sterling and Shapiro(1994)]{SterlingShapiro1994}
 L.~Sterling and E.~Y. Shapiro.

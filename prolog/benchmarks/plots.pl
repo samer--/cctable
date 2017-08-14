@@ -112,7 +112,7 @@ tex_row(Case, Times) -->
    pl(Case), amp, seqmap_with_sep(amp, num, Times, Ranks).
 
 num(nothing, _) --> "--".
-num(just(inf), _) --> !, math("\\times").
+num(just(inf), _) --> !, math(@bot).
 num(just(T), Rank) --> with_rank(Rank, fmt_time(T)).
 
 with_rank(1, X) --> !, @textbf(X).
@@ -127,15 +127,17 @@ fmt_time(T) -->
 
 tex_metrics_table -->
    { findall(Case-[NP,NC,NS], metrics(Case,NP,NC,NS), Rows) },
-   @begin("tabular", "@{}lrrr@{}"), cr,
-   amp, seqmap_with_sep(amp, math, ["N_p", "N_c", "N_s"]), lbr,
+   @begin("tabular", "@{}l@{\\qquad}rrrrr@{}"), cr,
+   amp, seqmap_with_sep(amp, math, ["N_p", "N_c", "N_s", "R_c", "R_s"]), lbr,
    @hline,
    seqmap_with_sep(lbr, tex_metrics_row, Rows), lbr,
    @hline,
    @end("tabular"), cr.
 
 tex_metrics_row(Case-Vals) -->
-   pl(Case), amp, seqmap_with_sep(amp, wr, Vals).
+   {Vals=[NP,NC,NS], RC is NC/NP, RS is NS/NP},
+   pl(Case), amp, seqmap_with_sep(amp, wr, Vals),
+   amp, seqmap_with_sep(amp, fmt('~1f'), [RC,RS]).
 
 setof(Pred,Xs) :- setof(X,call(Pred,X),Xs).
 

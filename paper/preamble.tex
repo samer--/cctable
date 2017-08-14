@@ -9,12 +9,26 @@ internal details of the implementation.}
 
 \def\TheTitle{More declarative tabling in Prolog using multi-prompt delimited control}
 
-\def\TheAbstract{Blah blah blah blah. Blah blah blah blah. Blah blah blah blah.
-Blah blah blah blah. Blah blah blah blah.  Blah blah blah blah. Blah blah blah blah.
-Blah blah blah blah. Blah blah blah blah.  Blah blah blah blah. Blah blah blah blah.
-Blah blah blah blah. Blah blah blah blah.  Blah blah blah blah. Blah blah blah blah.
-Blah blah blah blah. Blah blah blah blah.  Blah blah blah blah. Blah blah blah blah.
-Blah blah blah blah. Blah blah blah blah.  Blah blah blah blah. Blah blah blah blah.
-Blah blah blah blah. Blah blah blah blah.  Blah blah blah blah. Blah blah blah blah.
-Blah blah blah blah. Blah blah blah blah.
+\def\TheAbstract{%
+Several Prologs include an implementation of \emph{tabling}, an alternative
+resolution strategy which uses memoisation to avoid redundant duplication of
+computations. Until relatively recently, tabling has required low-level
+support in the underlying Prolog engine. An alternative approach is to 
+augment Prolog with low level support for continuation capturing control operators,
+particularly \emph{delimited continuations}, which have been investigated in the 
+field of function programming and found to be capable of supporting a wide variety 
+of computational effects within an otherwise declarative language. 
+
+This technical report describes an implementation of tabling in SWI Prolog based
+on delimited control operators for Prolog recently introduced by \cite{SchrijversDemoenDesouter2013}.
+In comparison with a previous implementation of tabling for SWI Prolog using delimited
+control \cite{DesouterVan-DoorenSchrijvers2015}, this approach, based on 
+the functional memoising parser combinators of \cite{Johnson1995}, stays closer to
+the declarative core of Prolog, requires less code, and is able deliver solutions
+from systems of tabled predicates incrementally (as opposed to finding all solutions
+before delivering any to the rest of the program).
+
+A collection of benchmarks shows that a small number of carefully targeted optimisations
+yields performance similar to the highly optimised version of Desouter et al's system
+currently included in SWI Prolog.
 }

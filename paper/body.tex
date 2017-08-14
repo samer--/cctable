@@ -43,10 +43,14 @@ Recently, continuation capturing control operators have been implemented in hPro
 SWI Prolog \citep{SchrijversDemoenDesouter2013}, and subsequently used to implement
 tabling completely in Prolog, without any further low level support 
 \cite{DesouterVan-DoorenSchrijvers2015}. This report describes a similar approach, first
-translating \citepos{Johnson1995} functional memoisation into pure, declarative Prolog,
-and then making minimal changes to implement tabling as it is more usually seen in Prolog,
-while retaining most of the declarativeness of the functional version. [Contribution? Differences from
-previous methods?]
+translating \citepos{Johnson1995} functional memoisation into pure, declarative Prolog (in \secrf{functional}),
+then (in \secrf{idiomatic}) making minimal changes to implement tabling as it is more usually seen in Prolog,
+while retaining most of the declarativeness of the functional version, and finally (in \secrf{complexity}) analysing
+the computation complexity of the system and making a small
+number of targeted optimisations to yield acceptable performance. Concluding remarks are to be found
+in \secrf{conclusions} and supplementart code in the appendices.
+
+[Contribution? Differences from previous methods?]
 
 The system presented here was developed using SWI Prolog \citep{WielemakerSchrijversTriska2012},
 which includes an implementation of delimited continuations
@@ -103,8 +107,8 @@ that does not unify with the parameter to "shift/1". In this case, the "shift" t
 until a "reset" with a unifiable "Ball" parameter is found. This mechanism is intended to allow different
 computational effects to be implemented by nesting calls to "reset/3", each matching a different set of
 "Ball" terms and each accompanied by a suitable effect handler to deal with the requested effect and then 
-resume the computation by calling the continuation.\footnote{Note that this feature only works correctly
-in SWI Prolog beginning with version 7.5.12.}
+resume the computation by calling the continuation.
+% \footnote{Note that this feature only works correctly in SWI Prolog beginning with version 7.5.12.}
 
 % In order to support the rest of the code presented here,
 We will begin with a module "delimcc" that provides an alternative interface to delimited control that
@@ -118,7 +122,9 @@ as in \citepos{DyvbigJonesSabry2005} and \citepos{Kiselyov2012} libraries.
   :- meta_predicate p_reset(+,0,-).
   ~p_reset~(Prompt, Goal, Result) :-
     reset(Goal, Prompt-Signal, Cont),
-    (Cont==0 -> Result = done; Result = susp(Signal, Cont)).
+    ( Cont==0 -> Result = done
+    ; Result = susp(Signal, Cont)
+    ).
 
   ~p_shift~(Prompt, Signal) :- shift(Prompt-Signal).
 \end{prolog-framed}
@@ -165,6 +171,7 @@ is called inside a delimited context and so may use computational effects too, j
 in the functional version of |shift|.
 
 \section{Memoisation functional style}
+\seclab{functional}
 
 \subsection{State handling using delimited control}
 \label{sec:ccstate}
@@ -260,15 +267,15 @@ red-black balanced binary trees implemented in the SWI Prolog built-in library "
 
   ~h_mem~(P,R,X,Y,K,Ans) :-
      Ky =\Y^K,
-     ref_upd(R, Tab, Tab1),
-     (  rb_upd(X, entry(Ys,Conts), entry(Ys,[Ky|Conts]), Tab, Tab1)
+     ref_upd(R, T1, T2),
+     (  rb_upd(X, entry(Ys,Conts), entry(Ys,[Ky|Conts]), T1, T2)
      -> rb_fold(fst_call_append(Ky), Ys, [], Ans)
      ;  rb_empty(EmptySet),
-        rb_add(X, entry(EmptySet,[]), Tab, Tab1),
-        call(P,X,YNew),
+        rb_add(X, entry(EmptySet,[]), T1, T2),
+        call(P,X,Y1),
         ref_app(R, rb_upd(X, entry(Ys,Conts), entry(Ys2,Conts))),
-        (  rb_add(YNew, t, YS, Ys2)
-        -> foldl(flip_call_append(YNew), [Ky|Conts], [], Ans)
+        (  rb_add(Y1, t, YS, Ys2)
+        -> foldl(flip_call_append(Y1), [Ky|Conts], [], Ans)
         ;  Ans = [], Ys2 = Ys
         )
      ).
@@ -285,35 +292,35 @@ produced by each application of the continuation.
 
 A memoised version of a binary predicate is 
 prepared using "memo/2", which creates a new mutable reference containing the initially
-empty memo table for that predicate. Calling the memoised version results in a call to "mem_call/4", 
-which, invokes the continuation handler "h_mem/6". This works very much like the
+empty memo table for that predicate. The memoised version is a call to "mem_call/4", 
+which, invokes the continuation handler "h_mem/6". This works very much like 
 \citepos{Abdallah2017a} functional version: if the memoised predicate has already been applied to
-the input "X", then there will already be an entry in the memo table "Tab" (line 25), in which case the
+the input "X", then there will already be an entry in the memo table "T1" (line 25), in which case the
 newly captured continuation, in the form of a two-argument lambda abstraction "Ky", is added to the 
-list of `consumer' continuations associated with "X", and the continuation predicate "Ky" is applied to all
-the results produced by the base predicate "P" so far (the list "Ys", line 26), collecting all the 
+list of `consumer' continuations associated with "X", and then applied to all
+the results produced by the base predicate "P" so far (line 26), collecting all the 
 final results in the list "Ans". If this is the first time the memoised predicate has been applied to 
-"X", then a new `producer' is initiated  by adding a new entry to the memo table (line 28), calling the base
-predicate "P", and, for each result "YNew", producing an empty answer list if "YNew" is 
-already in the results table (line 33) or sending "YNew" to all of the continuations waiting for the
+"X", then a new `producer' is initiated  by adding an entry to the memo table (line 28), calling the base
+predicate "P", and, for each result "Y1", producing an empty answer list if "Y1" is 
+already in the results table (line 33) or sending "Y1" to all of the continuations waiting for the
 result of applying "P" to "X". The whole of the handler predicate "h_mem/6" is called inside a
 "memo" prompt, so that any nondeterminism or memoisation effects triggered inside the call to "P" 
 (line 29) result in the following lines of code being executed multiple times and the answers being collected
 in the correct way.
 
-As an example of how this memoisation framework can be used, the following code illustrates a left-recursive
+As an example of how this framework can be used, the following illustrates a left-recursive
 predicate "path/2" which implements the transitive closure of "edge/2".
 \begin{prolog-framed}[numbers=left]
   :- use_module(ccmemo).
 
   ~path_memo~(Start, Ends) :-
-    memo(path(P), P),
-    run_memo(call(P,Start), Ends).
+    memo(path(Path), Path),
+    run_memo(call(Path,Start), Ends).
 
-  ~path~(P, N1, N3) :- 
+  ~path~(Path, N1, N3) :- 
     choose([0,1],U), 
     ( U = 0 -> edge(N1,N3)
-    ; U = 1 -> call(P,N1,N2), edge(N2,N3)
+    ; U = 1 -> call(Path,N1,N2), edge(N2,N3)
     ).
 
   ~edge~(a,X) :- choose([b,c],X).
@@ -324,15 +331,15 @@ predicate "path/2" which implements the transitive closure of "edge/2".
 The predicate "path_memo/2" must be called inside a context providing mutable references, \eg, as
 "run_ref(path_memo(Start, Ends))".
 A few observations on this code are in order. Firstly, "path/3" is written in \emph{open recursive} style;
-that is, rather than call itself directly when recursion is required, it calls the first argument "P", which
+that is, rather than call itself directly when recursion is required, it calls the first argument "Path", which
 is assumed to represent the memoised recursive path predicate. The recursion is tied-up without using
-an explicit fixed-point operator simply by memoising "path(P)" on line 4 and unifying the result with "P".
-The fact that this results in a cyclic term is not a problem. Secondly, all nondeterminism in the
+an explicit fixed-point operator simply by memoising "path(Path)" on line 4 and unifying the result with "Path"
+(results in a cyclic term). Secondly, all nondeterminism in the
 program, both in "edge/2" predicate and "path/3", must be represented using "choose/2",
 rather than using Prolog's built-in nondeterminism. This results in a rather non-idiomatic Prolog style, for
 example, we cannot simply omit the clause for "edge(d,X)" on line 16 and rely on normal Prolog failure to indicate that there is no edge 
 from "d"; we must use "choose([],_)" to express this fact. Thirdly, although not a problem in this example,
-the restriction to memoising only binary `input-output' predicates does not fit well with the Prolog style
+the restriction to memoising only binary `input-output' predicates does not fit well with the Prolog norm
 of using arbitrary arity predicates without restrictions on which arguments may be considered
 `inputs' or `outputs'. In short, we have not really implemented \emph{Prolog} style tabling, but rather
 transplanted a functional idiom into Prolog. These deficiencies are remedied in the next section.
@@ -344,7 +351,7 @@ transplanted a functional idiom into Prolog. These deficiencies are remedied in 
 \subsection{Tabling with non-backtrackable state}
 \label{sec:ccnbstate}
 
-The Prolog implementation of delimited continuations interacts in an unproblematic way
+The Prolog implementation of delimited continuations interacts unproblematically 
 with Prolog's nondeterminism and backtracking: any choice points created inside a
 "reset/3" are preserved on leaving the delimited context, and subsequent failure will
 cause backtracking to a choice point, undoing of variable bindings, and re-execution of 
@@ -360,8 +367,8 @@ the state of the tables must be managed in such a way that changes are not rever
 
 These two ways of combining of state with nondeterminism (usually referred to as \emph{backtrackable}
 and \emph{non-backtrackable} state respectively) can be represented
-in a functional settings using \emph{monad transformers} \citep{LiangHudakJones1995}.
-Within this framework, the two computational effects can be
+in a functional setting using \emph{monad transformers} \citep{LiangHudakJones1995}.
+Within that framework, the two computational effects can be
 layered in either order, with the two resulting monadic types making clear the difference
 between them. If |'s| is the type of the state and nondeterminsim is represented as a list,
 the type of a monadic computation yielding values of type |'a| is |'s -> ('a * 's) list| 
@@ -373,7 +380,7 @@ the traversal process that produced the list of alternatives. The fact that the 
 on the traversal process does not compromise the purity of the computation, because the mapping
 from initial state to results plus final state is still deterministic and free of side effects.
 
-If we use Prolog's nondeterminism to represent a collection of results, that is, using a predicate
+Using Prolog's nondeterminism to represent a collection of results, that is, using a predicate
 that succeeds once for each result, the
 requirements for declarativeness are more stringent: the model theoretic meaning of a predicate is
 a \emph{set} of tuples, invariant with respect to the strategy used to find them.
@@ -383,11 +390,11 @@ reading is to be maintained, the state
 should not be exposed in the interface of a predicate that uses it internally.
 
 SWI Prolog provides a number of ways to manage non-backtrackable state, including dynamic predicates
-(using "assert/1" and "retract/1"), a `recorded database', and non-backtrackable
-global variables (using "nb_setval/2" and "nb_getval/2"). All three of these 
+("assert/1" and "retract/1"), a `recorded database', and non-backtrackable
+global variables ("nb_setval/2" and "nb_getval/2"). All three of these 
 (necessarily) involve a departure from pure Prolog semantics.
 Using "run_nb_state/4" (implementation given in appendix~\ref{app:ccnbstate}), the scope of this 
-impurity and the associated dangers of unprotected global mutable state are strictly limited to 
+impurity and the associated dangers of unprotected global mutable state are limited to 
 the introduction of one mutable cell accessed via a carefully controlled computational effect,
  with essentially the same interface as the backtrackable state effect provided by "run_state/4" in module
 "ccstate" (\secrf{ccstate}). 
@@ -407,8 +414,8 @@ can share the same table. In the sequel, an equivalence class of calls which are
 of each other will be called a `variant class'.\footnote{It should be noted that manipulating terms on
 the basis of what variables they contain involves stepping up out of the pure, declarative
 fragment of Prolog in to pure Prolog's \emph{metalanguage}. The fact that Prolog serves as
-its own metalanguage means that this distinction is easily overlooked.} The safest way to manipulate 
-variant classess without resorting to xtra-logical operations such as variable equivalence
+its own metalanguage means that this distinction is easily overlooked.} The safest way to manipulate
+variant classess without resorting to extra-logical operations
 is to represent them as ground terms as soon as possible, which can be done
 using "numbervars/3". This replaces each distinct variable with a term "`&VAR'(N)", where "N"
 is an integer. Thus, in the examples above "foo(a,X,Y)" will be represented as "foo(a,`&VAR'(0),`&VAR'(1))",
@@ -423,8 +430,8 @@ stratification in table access between the binary predicate at the first level
 and the input argument at the second is gone: each variant class combines predicate
 and `input' arguments, and is a separate entity at the top level.
 
-The `output' from calling a tabled predicate with a particular variant class consists of
-the bindings of the variables in the variant class, which may be distributed in any
+The `output' from calling a particular variant class consists of
+the bindings of the variables in the call, which may be distributed in any
 way across the parameters of the predicate, including possible partial instantiations
 of arguments. These variables can be extracted using the standard Prolog extra-logical
 operation "term_variables/2". Each solution of a tabled variant class can then be represented
@@ -433,7 +440,7 @@ as a list of the resulting values of these variables.
 \subsection{Using Prolog nondeterminism}
 
 The final requirement is to use Prolog's nondeterminism both at the level of the predicates
-being tabled (instead of the awkward to use "choose/2" effect in the functional version)
+being tabled (instead of the awkward "choose/2" effect in the functional version)
 and to represent nondeterminism outside the tabled environment (instead of reifying nondeterminism
 as a list of alternatives). This will have the additional effect that the solutions of tabled
 predicates can be explored incrementally, instead of being produced all at once.
@@ -511,7 +518,7 @@ transition. These transitions are managed using the predicates "new_cont/5"
 (to decide what to do with the newly captured continuation on each call to a tabled
 predicate) and "new_soln/4" (to decide what to do with a new solution from the 
 `worker' goal "Work". These two predicates are themselves pure, so that the effectful
-operation of changing the state is entirely contained within the "app/2" operator.
+component of the state transition is completely encapsulated by the "app/2" operator.
 
 The variable "Ans" is used 
 to represent the list of `outputs' from the top-level goal initially passed
@@ -542,8 +549,6 @@ in \secrf{ccmemo} can be written (now using DCG notation for "path/2") as:
   :- use_module(cctable).
   :- use_module(ccmacros).
 
-  ~path_memo~(Start, End) :- run_tabled(path(Start,End)).
-
   :- table path/2.
   ~path~ --> edge; path, edge.
 
@@ -560,31 +565,34 @@ call of the renamed predicate.
 
 
 \section{Computational complexity and performance}
+\seclab{complexity}
 
-The tabling library presented above achieves aim of providing
+The system presented above achieves the aim of supporting
 idiomatic Prolog tabling while consisting almost entirely of pure, declarative Prolog.
 Unfortunately, its performance is terrible. This is because maintaining non-backtrackable
-state in Prolog requires a certain amount of term copying; not only is this relatively
-expensive in itself, it also tends to create more work for the garbage collector. In this case,
-because the state is held in a \emph{single} mutable variable, the \emph{entire} state is
+state in Prolog requires a certain amount of term copying: not only is this relatively
+expensive in itself, it also tends to create more work for the garbage collector. 
+Because the state is held in a \emph{single} mutable variable, the \emph{entire} state is
 copied every on every transition, even if only a small component of the
 state has been changed. This creates a tension between the desire for logical purity,
 which drives us to minimise the number of points of mutation, and the desire for
-efficiency, which drives us to \emph{factorise} the mutable state into several
-independently modifiable pieces, so that one component of the state can be modified without
-incurring the cost of copying the rest. Thus, at this point, development becomes a 
+efficiency, which drives us to \emph{factorise} the state into several
+pieces, so that one component of the state can be modified without
+incurring the cost of copying the rest. At this point, development becomes a 
 question of pragmatic balance, attempting to achieve acceptable performance with
 a minimal departure from logical purity, which is, perhaps, a little unsatisfying from a 
 theoretical point of view, but seems to be unavoidable within the framework
 of current Prolog systems. 
 
 \subsection{Complexity analysis}
+\seclab{complexity}
+
 We can begin to quantify the costs of various copying operations as follows.
 Given an application involving tabled predicates, let $N_p$ be the number
 of `producer' calls; that is, the number of distinct variant classes in use.
 Let $R_c$ be the average number of `consumer' calls per producer; that is, the
 number of subsequent calls with a given variant class after the initial
-one. Finally, let "R_s" be the average number of solutions per producer.
+one. Finally, let $R_s$ be the average number of solutions per producer.
 It is clear that the tabling system must call each continuation for each solution
 for each variant class, so that a minimal complexity for a computation that
 processes every solution of every tabled call is $O(N_p R_c R_s)$. However,
@@ -615,7 +623,7 @@ Of these, the first cannot be avoided, since a single continuation may need to
 be called multiple times with different `inputs' in the course of a computation.
 The others result from representational choices; for example, (3) applies when
 a single term contains information about all producers, which is the case
-in the implementation of \secrf{idiomatic}, with $K = R_c R_c$; (6) applies
+in the implementation of \secrf{idiomatic}, with $K = R_c R_s$; (6) applies
 when all the continuations for a particular producer are stored in a single
 data structure, and similarly (7) when all the solutions from a producer are
 stored in one term. Indeed, the implementation of \secrf{idiomatic} suffers from
@@ -627,32 +635,34 @@ several of which are explored in the code repository accompanying this report.
 Although a complete description of these is beyond the scope of this report, a few
 strategies will be discussed below.
 
-Firstly, it is clear from the table of copying costs that for the optimal asymptotic 
+Firstly, it is clear from the table of copying costs that for asymptotic 
 performance of $O(N_p R_c R_s)$ it is most important to avoid costs that are quadratic 
 in $N_p$, $R_c$ or $R_s$, as these will eventually dominate in large problems.
-The implementation "cctable_db" does this by using dynamic predicates "producer/1",
-"consumer/2" and "solution/2" to acheive a complete factorisation of the state of
+The implementation "cctable(db)" does this by using dynamic predicates 
+% "producer/1", "consumer/2" and "solution/2" 
+to acheive a complete factorisation of the state of
 the system. Although the overheads associated with using dynamic predicates are larger
 than those for non-backtrackable global variables, the asymptotic complexity means
-that performance on some of the benchmarks is surprisingly reasonable.
+that performance is still better than some of the implementations (not shown in the table)
+using non-backtrackable global variables to carry badly factorised state.
 
-Another way to avoid a quadratic cost of adding solutions is to use the SWI Prolog
+Another way to avoid a quadratic cost when adding solutions is to use the SWI Prolog
 "tries" library, which allows a single immutable reference to point to a mutable
 associative map. This was introduced to support the tabling library currently included
-in SWI Prolog, but is sufficiently general to be used in implementation "cctable_trie", 
+in SWI Prolog, but is sufficiently general to be used in the implementation "cctable(trie)", 
 for both the map of variant classes to table entries and the set of solutions for each
 variant class.
-
+%
 Tries are not a suitable data structure for the collection of continuations associated
-with each producer as it is not appropriate to treat them as a set or test them for equality.
-Hence, to avoid copying costs quadratic in the number of continuations per producer 
-in "cctable_trie", a system of references to growable lists is introduced, built using
+with each producer, as it is not appropriate to treat them as a set or test them for equality.
+Hence, to avoid quadratic costs here, in "cctable(trie)", a system of references to 
+growable lists is introduced, built using
 the low-level "nb_linkval/2" operation to avoid copying the continuations already in the
 list.
 
 While developing approaches to managing the collection of continuations efficiently,
 it became clear that size of the continuation terms can be significant factor in some problems, 
-most obviously in the implementation of the Fibonacci function, where the total size
+most obviously in Fibonacci benchmark, where the total size
 of the continuations was found to grow quadratically with the size of the problem.
 Discussions with Jan Wielemaker, the principal author of SWI Prolog, lead to the conclusion
 that there were two causes of this. Firstly (and most easily dealt with) the inclusion
@@ -672,16 +682,16 @@ This lead Jan Wielemaker to introduce optimisations in the low level implementat
 optimisations, to remove these stack frames. Coupled with some extra filtering of ineffectual
 continuation frames at the Prolog level, this solved the continuation growth problem 
 completely, resulting in approximately linear time complexity on the Fibonacci benchmark using
-the implementation "cctable_trie_kp".
+the implementation "cctable(trie)/kp".
 An equivalent modification was also applied to the dynamic database version 
-to get the implementation "cctable_db_kp".
+to get the implementation "cctable(db)/kp".
 
 \subsection{An improved implementation}
 
-The implementation "cctable_trie_kp" is given below. Continuations are represented using
-the "k/3" functor instead of lambda terms, since copying them in one go (in "lref_get/2") is faster
-than copying individually when calling lambda terms. 
-\begin{prolog-framed}[name=cctable8,numbers=left]
+The implementation "cctable(trie)/kp" is given below. Continuations are represented using
+the "k/3" functor instead of lambda terms, since a bulk copy (in "lref_get/2") is faster
+than copying them individually when calling lambda terms. 
+\begin{prolog-framed}[name=cctable_trie_kp,numbers=left]
   :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
   :- use_module(ccnbref, [run_nb_ref/1, nbref_new/2]).
   :- use_module(lambdaki).
@@ -726,6 +736,31 @@ than copying individually when calling lambda terms.
 
 \subsection{Benchmarks}
 
+Several of the implementation variations described above were tested on a selection
+of the benchmarks that were used by \cite{DesouterVan-DoorenSchrijvers2015} and
+compared with alternative tabling implementations. 
+Desouter et al.'s system was tested in two forms: the original all-Prolog
+library, referred to below as "desouter(pl)", is a port of the original from hProlog to SWI Prolog\footnote{%
+Available at \url{https://github.com/JanWielemaker/tabling_library}}, while
+"desouter(plc)" is an optimised version, with some components re-implemented
+in C for greater speed. In addition, the tabling implementations in two other Prologs,
+YAP and B-Prolog were also tested, though it should be noted that these are both
+much faster Prologs in general and that in both tabling is implemented at a low level.
+Also, YAP does not support arbitrary precision arithmetic, and so cannot run the Fibonacci benchmark
+with the parameters indicated.
+The benchmarks themselves were derived from code available at \url{https://github.com/JanWielemaker/tabling_benchmarks}.
+
+Each of these benchmarks results in a certain pattern of tabled calls, which can be characterised
+as in \secrf{complexity} in terms of the number of producers, consumers and solutions, as follows:
+\begin{center}
+  \input{../prolog/benchmarks/metrics}
+\end{center}
+Notably, the na\"ive reverse benchmark "nrev(_)" does not involve any consumer calls: each variant class
+is called just once, producing one answer, and so this benchmark does not benefit from tabling at all.
+Thus, the timing results give an indication of the minimum overhead introduced by the tabling system.
+The results are shown in \tabrf{timings}, and a subset of the results illustrated graphically in
+\figrf{speed}.
+
 \begin{table}
 \small%
 \begin{center}
@@ -735,20 +770,9 @@ than copying individually when calling lambda terms.
 Times are milliseconds unless explicitly stated in seconds. In each row, the best time
 is typeset in boldface and the second best time is underlined. YAP does not include
 support for arbitrary precision integer arithmetic and so was not able to run
-the Fibonacci benchmark at the given sizes. A $\times$ indicates that the benchmark
-did not complete within the allowed time of 240 s.}
+the Fibonacci benchmark at the given sizes. A $\bot$ indicates that the benchmark
+did not complete within the allowed time of 240 s. \tablab{timings}}
 \end{table}
-
-Several of the implementation variations described above were tested on a selection
-of the benchmarks that were used by \cite{DesouterVan-DoorenSchrijvers2015} and
-compared with alternative tabling implementations. Two of these run in SWI Prolog:
-"desouter-pl" is \citepos{DesouterVan-DoorenSchrijvers2015} original tabling library
-ported from hProlog to SWI Prolog (available at \url{https://github.com/JanWielemaker/tabling_library}),
-and "desouter-plc" is the optimised version of this, with some components re-implemented
-in C for greater speed. In addition, the tabling implementations in two other Prologs,
-YAP and B-Prolog ("bp") were also tested, though it should be noted that these are both
-much faster Prologs in general and that in both tabling is implemented at a low level.
-The benchmarks themselves were derived from code available at \url{https://github.com/JanWielemaker/tabling_benchmarks}.
 
 \begin{figure}
   \begin{center}
@@ -769,34 +793,42 @@ The benchmarks themselves were derived from code available at \url{https://githu
   \figlab{speed}}
 \end{figure}
 
-Each of these benchmarks results in a certain pattern of tabled calls, which can be characterised
-as in \secrf{complexity} in terms of the number of producers, consumers and solutions, as follows:
-\begin{center}
-  \input{../prolog/benchmarks/metrics}
-\end{center}
-[B-Prolog uses linear tabling, which is very fast in some problems but much slower in others.]
-
-[YAP doesn't support arbitrary precision arithmetic, so it cannot run the Fibonacci benchmark
-at the required sizes.]
-
-Some of the benchmark execution times for YAP are reported as 0 ms in 
-\citep{DesouterVan-DoorenSchrijvers2015}. The code for running these
+Overall, YAP is the fastest system, with efficient an implementation of SLG resolution as well as 
+a fast underlying Prolog.\footnote{%
+\cite{DesouterVan-DoorenSchrijvers2015} reported some of the execution times for YAP
+at 0 ms. The code for running these
 benchmarks measured the time to produce the \emph{first} solution produced. YAP's
 tabling algorithm, like the one presented here, is able to produce solutions
-as they are found, whereas Desouter et al's algorithm (both implementations) finds
+as they are found, whereas Desouter et al.'s algorithm (both implementations) finds
 all solutions before producing the first one. Hence the comparison is a bit misleading,
-and to produce the benchmarks table [ref], the code was modified to measure the
-time find all solutions. 
+and so to produce the benchmarks here, the code was modified to measure the
+time find all solutions.}
 
-[The naive reverse benchmark doesn't actually benefit from tabling at all, as no call is
-ever made more than once. Thus, it measures the minimal overhead introduced by tabling.]
+B-Prolog is also a very fast Prolog, but uses a different tabling algorithm,
+\emph{linear tabling} \citep{ShenYuanYou2001}, with quite different characteristics. It performs 
+very well on many benchmarks but relatively poorly on those which involve a lot of non-determinism.
 
+Of the SWI Prolog-based implementations, the optimised version of Desouter et al.'s library currently
+included as standard in SWI is the fastest. Compared with this, The implementation "cctable(trie)/kp" 
+developed here is quite competetive, running about half as fast in most benchmarks. Although
+it shares the optimise trie implementation, it does not benefit from the optimised `worklist'
+data structure, which stores and reactivates continuations more efficiently than is possible
+from Prolog code.
+
+It is clear from the results that the steps taken to avoid continuation
+growth (the "_/kp" versions) are effective, especially on the Fibonacci benchmark, while having
+a small negative impact on those benchmarks that did not suffer from excessive continuation
+growth, with "pyramid(500)" suffering the most. It is also clear from the "nrev(_)" results
+that the "cctable(db)" versions, using dynamic predicates, have the smallest overhead when
+tabling turns out not be useful. However, these two implementations are not
+competetive on several of the other benchmarks.
 
 \section{Discussion and conclusions}
+\seclab{conclusions}
 
-The implementation presented in this report was largely derived from the OCaml
-version reported by \cite{Abdallah2017a}, but it shares many similarities with
-the tabling library of \cite{DesouterVan-DoorenSchrijvers2015}; for example,
+The implementations presented in this report were largely derived by analogy from the OCaml
+version decribed by \cite{Abdallah2017a}, but they share many similarities with
+the tabling library of \cite{DesouterVan-DoorenSchrijvers2015}: for example,
 the use of "numbervars/3" to represent variant classes as ground terms. In
 addition, the drive for acceptable asymptotic performance lead to the adoption
 of mutable tries for mananging both the collection of variant classes and the sets
@@ -804,16 +836,31 @@ of solutions for each variant class.
 
 However, there are several significant differences.
 The control structure and scheduling mechanism is more declarative, with less
-reliance on side effects. In terms of the amount of code it is much simpler.
-It delivering solutions incrementally, rather than having to collect them all before 
-delivering the first one.
+reliance on side effects. In terms of the amount of code it is much simpler: Desouter
+et al quote a figure of 244 lines of code, excluding the implementation of tries,
+whereas the equivalent functionality here is provided by approximately 80 lines of code.
+[Check this---what should be included?]
+In use, it delivers solutions incrementally, rather than having to collect them all before 
+delivering the first one, which could amount to a significant saving in execution time
+in certain applications.
 
-[Observations on performance?]
+It was found while profiling the initial and most declarative implementation that the
+largest contributions to execution time came from term copying and garbage collection.
+This is an avoidable factor when using non-backtrackable state in Prolog, tends to force
+the introduction of more separate pieces of mutable state in order to get acceptable
+performance. However, it is still possible to use delimited control operators, with a relatively
+low cost, to mange these pieces of mutable state with a minimal impact on the declarativeness
+of most of the program.
 
-[Importance of minimising copying?]
+The fastest implementation presented here, "cctable(trie)/kp", is within a factor of about 
+2 of the tabling system currently included in SWI Prolog, and so with a little more 
+optimisation, could become a viable alternative, bringing the benefits of incrementality,
+and greater code simplicy and declarativeness.
 
-[Future work: faster implementation of list of continuations, analogous to `worklists' in
-"desouter-plc" implementation.
+\bigskip
+\noindent
+\textbf{Acknowledgments}\\[0.5em]
+\TheAcknowledgments
 
 \appendix
 \section{Supporting code}
