@@ -48,7 +48,7 @@ then (in \secrf{idiomatic}) making minimal changes to implement tabling as it is
 while retaining most of the declarativeness of the functional version, and finally (in \secrf{complexity}) analysing
 the computation complexity of the system and making a small
 number of targeted optimisations to yield acceptable performance. Concluding remarks are to be found
-in \secrf{conclusions} and supplementart code in the appendices.
+in \secrf{conclusions} and supplementary code in the appendices.
 
 [Contribution? Differences from previous methods?]
 
@@ -66,7 +66,7 @@ as "\X^Y^Goal", but coded as \verb|\X^Y^Goal|.
 Continuation passing style and continuation-based control operators have been well studied in the
 context of lambda calculus and functional programming \citep{SussmanSteele1975}.
 The idea of delimited continuations was arrived at independently by \cite{Felleisen1988} and
-\cite{DanvyFilinski1990}. Multiple, first class, independently addressible prompts were introduced
+\cite{DanvyFilinski1990}. Multiple, first class, independently addressable prompts were introduced
 by \cite{DyvbigJonesSabry2005} in their monadic Haskell implementation, which was recast
 as an OCaml library to be used in `direct style' (i.e. using neither monadic nor explicit continuation 
 passing styles) by \cite{Kiselyov2012}. The basic operation of multi-prompt delimited
@@ -83,7 +83,7 @@ in a context delimited by the prompt |p| by calling |push_prompt p f|, which pla
 Calls to |push_prompt|, using the same or differing prompts, can be nested arbitrarily.
 If, inside |f|, there is a call to |shift p h|, the
 continuation out to the nearest instance of |push_prompt p| is captured as a function |k : 'b -> 'a|, and passed to the handler
-|h|, whose return value is then returned from the enclosing |push_prompt|. The captured continuation includes an implict
+|h|, whose return value is then returned from the enclosing |push_prompt|. The captured continuation includes an implicit
 enclosing |push_prompt p|, which hides any further calls to |shift p| it may contain, and means that, from the outside,
 it looks like a pure function, which can be called zero, once, or many times. During a call to the handler |h|,
 the original outer prompt stays in place, so that any calls to |shift p| made by the handler do not
@@ -99,7 +99,7 @@ is bound to the argument of "shift/1", and control is passed to the code followi
 The continuation "Cont" can be called subsequently, resuming the interrupted execution of the original
 goal, but if that includes further calls to "shift/1", then it must be called inside a new
 "reset", since, unlike in the functional version of |shift|, the captured continuation 
-does \emph{not} reestablish the delimited context.
+does \emph{not} re-establish the delimited context.
 
 Calls to "reset/3" can be nested.  In this case, a "shift" is handled by the nearest
 enclosing "reset", \emph{unless} that "reset" was called with a partially instantiated "Ball" parameter
@@ -356,12 +356,12 @@ with Prolog's nondeterminism and backtracking: any choice points created inside 
 "reset/3" are preserved on leaving the delimited context, and subsequent failure will
 cause backtracking to a choice point, undoing of variable bindings, and re-execution of 
 subsequent goals both inside and outside the delimited context. This means, for example,
-the state handling provided by "run_state/4" interacts with nondetermism just as
+the state handling provided by "run_state/4" interacts with nondeterminism just as
 a DCG or other pure Prolog predicate would, with state transitions being undone on backtracking.
 
 Tabling relies on sharing state \emph{across} alternative branches of computation.
-The implementation in the previous section dealt with this by eschewing Prolog nondeterminsm
-entirely and using lists to accumlate alternative results.
+The implementation in the previous section dealt with this by eschewing Prolog nondeterminism
+entirely and using lists to accumulate alternative results.
 If we wish to use Prolog's nondeterminism to represent these alternatives, then
 the state of the tables must be managed in such a way that changes are not reversed on backtracking.
 
@@ -370,12 +370,12 @@ and \emph{non-backtrackable} state respectively) can be represented
 in a functional setting using \emph{monad transformers} \citep{LiangHudakJones1995}.
 Within that framework, the two computational effects can be
 layered in either order, with the two resulting monadic types making clear the difference
-between them. If |'s| is the type of the state and nondeterminsim is represented as a list,
+between them. If |'s| is the type of the state and nondeterminism is represented as a list,
 the type of a monadic computation yielding values of type |'a| is |'s -> ('a * 's) list| 
 when layering state on top of nondeterminism, but
-|'s -> 'a list * 's| with nondeterminism on top of state. The former corresponds to backatrackable 
+|'s -> 'a list * 's| with nondeterminism on top of state. The former corresponds to backtrackable 
 state, since there is a state associated with each nondeterministic alternative, while the
-latter corresponds to nonbacktrackable state, since there is a single final state resulting from
+latter corresponds to non-backtrackable state, since there is a single final state resulting from
 the traversal process that produced the list of alternatives. The fact that the final state depends
 on the traversal process does not compromise the purity of the computation, because the mapping
 from initial state to results plus final state is still deterministic and free of side effects.
@@ -415,7 +415,7 @@ of each other will be called a `variant class'.\footnote{It should be noted that
 the basis of what variables they contain involves stepping up out of the pure, declarative
 fragment of Prolog in to pure Prolog's \emph{metalanguage}. The fact that Prolog serves as
 its own metalanguage means that this distinction is easily overlooked.} The safest way to manipulate
-variant classess without resorting to extra-logical operations
+variant classes without resorting to extra-logical operations
 is to represent them as ground terms as soon as possible, which can be done
 using "numbervars/3". This replaces each distinct variable with a term "`&VAR'(N)", where "N"
 is an integer. Thus, in the examples above "foo(a,X,Y)" will be represented as "foo(a,`&VAR'(0),`&VAR'(1))",
@@ -449,13 +449,13 @@ that already has a table entry (\ie a consumer call), instead of calling the con
 for each solution already found and aggregating the final answers, line 27 extracts a solution
 from the solution set \emph{nondeterministically}, leaving a choice point, and then calls
 the consumer continuation. Any subsequent failure will result in backtracking to this choice
-point and application of the continuatuion to the next solution in the set.
+point and application of the continuation to the next solution in the set.
 Secondly, in "producer/4" (line 37), "call(Generate, Y)" will be nondeterministic, and each time it succeeds,
 previously seen solutions can be ignored simply by failing in the attempt to add the value to the 
 solution set (line 44),
 while previously unseen solutions are sent to the registered continuations (including the producer's
 continuation) by calling them \emph{disjunctively}, rather than conjunctively (line 40). It is significant that
-the producer's continution "KP" is called \emph{first}: this means that from the outside,
+the producer's continuation "KP" is called \emph{first}: this means that from the outside,
 the tabled predicate produces answers lazily, before all solutions have been found.
 
 \begin{prolog-framed}[name=cctable,numbers=left]
@@ -533,7 +533,7 @@ provided by the tabled predicate, and `outputs'
 which will be bound when the continuation is called. This continuation is stored
 in the table entry for a variant class in the form of a lambda term
 "\Y^Ans^Cont" (line 24) so that it can be called as a binary predicate and called multiple times
-without binding the variables in the lambda term. Similary, the worker goal 
+without binding the variables in the lambda term. Similarly, the worker goal 
 is passed to "producer/4" in the form of a lambda term "\Y^Work" (line 28),
 so that it can be called without binding any of these variables.
 
@@ -640,7 +640,7 @@ performance of $O(N_p R_c R_s)$ it is most important to avoid costs that are qua
 in $N_p$, $R_c$ or $R_s$, as these will eventually dominate in large problems.
 The implementation "cctable(db)" does this by using dynamic predicates 
 % "producer/1", "consumer/2" and "solution/2" 
-to acheive a complete factorisation of the state of
+to achieve a complete factorisation of the state of
 the system. Although the overheads associated with using dynamic predicates are larger
 than those for non-backtrackable global variables, the asymptotic complexity means
 that performance is still better than some of the implementations (not shown in the table)
@@ -810,7 +810,7 @@ very well on many benchmarks but relatively poorly on those which involve a lot 
 
 Of the SWI Prolog-based implementations, the optimised version of Desouter et al.'s library currently
 included as standard in SWI is the fastest. Compared with this, The implementation "cctable(trie)/kp" 
-developed here is quite competetive, running about half as fast in most benchmarks. Although
+developed here is quite competitive, running about half as fast in most benchmarks. Although
 it shares the optimise trie implementation, it does not benefit from the optimised `worklist'
 data structure, which stores and reactivates continuations more efficiently than is possible
 from Prolog code.
@@ -827,11 +827,11 @@ competetive on several of the other benchmarks.
 \seclab{conclusions}
 
 The implementations presented in this report were largely derived by analogy from the OCaml
-version decribed by \cite{Abdallah2017a}, but they share many similarities with
+version described by \cite{Abdallah2017a}, but they share many similarities with
 the tabling library of \cite{DesouterVan-DoorenSchrijvers2015}: for example,
 the use of "numbervars/3" to represent variant classes as ground terms. In
 addition, the drive for acceptable asymptotic performance lead to the adoption
-of mutable tries for mananging both the collection of variant classes and the sets
+of mutable tries for managing both the collection of variant classes and the sets
 of solutions for each variant class.
 
 However, there are several significant differences.
@@ -855,11 +855,11 @@ of most of the program.
 The fastest implementation presented here, "cctable(trie)/kp", is within a factor of about 
 2 of the tabling system currently included in SWI Prolog, and so with a little more 
 optimisation, could become a viable alternative, bringing the benefits of incrementality,
-and greater code simplicy and declarativeness.
+and greater code simplicity and declarativeness.
 
 \bigskip
 \noindent
-\textbf{Acknowledgments}\\[0.5em]
+\textbf{Acknowledgements}\\[0.5em]
 \TheAcknowledgments
 
 \appendix
@@ -875,7 +875,7 @@ found at \url{https://github.com/samer--/cctable}.
 
 This module is a minimal implementation of lambda terms, which are callable terms representing
 predicates taking one or more arguments, which can be useful for high-order programming and
-reducing the need to define trivial auxillary predicates. It is a simplified version of 
+reducing the need to define trivial auxiliary predicates. It is a simplified version of 
 \citepos{Neumerkel2009} "lambda" library,
 supporting only unary and binary application with no free variables.
 
