@@ -1,0 +1,14 @@
+imp_case_time(cctable_trie_kp_1p, fib(1000), 20).
+imp_case_time(cctable_trie_kp_1p, fib(2000), 50).
+imp_case_time(cctable_trie_kp_1p, nrev(500), 100).
+imp_case_time(cctable_trie_kp_1p, nrev(1000), 330).
+imp_case_time(cctable_trie_kp_1p, shuttle(2000), 30).
+imp_case_time(cctable_trie_kp_1p, shuttle(5000), 80).
+imp_case_time(cctable_trie_kp_1p, ping_pong(10000), 80).
+imp_case_time(cctable_trie_kp_1p, path_dfst(50), 70).
+imp_case_time(cctable_trie_kp_1p, path_dfst(100), 420).
+imp_case_time(cctable_trie_kp_1p, path_dfst_loop(50), 350).
+imp_case_time(cctable_trie_kp_1p, recognise(20000), 140).
+imp_case_time(cctable_trie_kp_1p, pyramid(500), 610).
+imp_case_time(cctable_trie_kp_1p, test_joins, 2710).
+imp_case_time(cctable_trie_kp_1p, monoidal, 4160).

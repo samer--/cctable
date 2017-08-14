@@ -1,0 +1,14 @@
+imp_case_time(bprolog, fib(1000), 2).
+imp_case_time(bprolog, fib(2000), 7).
+imp_case_time(bprolog, nrev(500), 65).
+imp_case_time(bprolog, nrev(1000), 251).
+imp_case_time(bprolog, shuttle(2000), 229).
+imp_case_time(bprolog, shuttle(5000), 1438).
+imp_case_time(bprolog, ping_pong(10000), 3483).
+imp_case_time(bprolog, path_dfst(50), 6).
+imp_case_time(bprolog, path_dfst(100), 40).
+imp_case_time(bprolog, path_dfst_loop(50), 37).
+imp_case_time(bprolog, recognise(20000), 66213).
+imp_case_time(bprolog, pyramid(500), 43).
+imp_case_time(bprolog, test_joins, 1575).
+imp_case_time(bprolog, monoidal, 904).

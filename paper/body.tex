@@ -743,12 +743,12 @@ Several of the implementation variations described above were tested on a select
 of the benchmarks that were used by \cite{DesouterVan-DoorenSchrijvers2015} and
 compared with alternative tabling implementations. Two of these run in SWI Prolog:
 "desouter-pl" is \citepos{DesouterVan-DoorenSchrijvers2015} original tabling library
-ported from hProlog to SWI Prolog (available at \url{https://github/JanWielemaker/tabling_library}),
+ported from hProlog to SWI Prolog (available at \url{https://github.com/JanWielemaker/tabling_library}),
 and "desouter-plc" is the optimised version of this, with some components re-implemented
 in C for greater speed. In addition, the tabling implementations in two other Prologs,
 YAP and B-Prolog ("bp") were also tested, though it should be noted that these are both
 much faster Prologs in general and that in both tabling is implemented at a low level.
-The benchmarks themselves were derived from code available at \url{https://github/JanWielemaker/tabling_benchmarks}.
+The benchmarks themselves were derived from code available at \url{https://github.com/JanWielemaker/tabling_benchmarks}.
 
 \begin{figure}
   \begin{center}
@@ -769,6 +769,11 @@ The benchmarks themselves were derived from code available at \url{https://githu
   \figlab{speed}}
 \end{figure}
 
+Each of these benchmarks results in a certain pattern of tabled calls, which can be characterised
+as in \secrf{complexity} in terms of the number of producers, consumers and solutions, as follows:
+\begin{center}
+  \input{../prolog/benchmarks/metrics}
+\end{center}
 [B-Prolog uses linear tabling, which is very fast in some problems but much slower in others.]
 
 [YAP doesn't support arbitrary precision arithmetic, so it cannot run the Fibonacci benchmark

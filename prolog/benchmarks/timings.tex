@@ -1,17 +1,18 @@
 \newcommand\plh[1]{\lstinline[language=Prolog]{#1}}
 \begin{tabular}{@{}lrrrrrrrr@{}}
  & \rotatebox{90}{\plh{yap}} & \rotatebox{90}{\plh{bprolog}} & \rotatebox{90}{\plh{desouter(plc)}} & \rotatebox{90}{\plh{desouter(pl)}} & \rotatebox{90}{\plh{cctable(db)}} & \rotatebox{90}{\plh{cctable(db)/kp}} & \rotatebox{90}{\plh{cctable(trie)}} & \rotatebox{90}{\plh{cctable(trie)/kp}}\\
-\hline{"monoidal"} & \underline{1.2 s} & \textbf{1.2 s} & 3.3 s & 35 s & 154 s & 129 s & 4.3 s & 4.2 s\\
-{"fib(500)"} & -- & \textbf{0} & \textbf{0} & 50 & 280 & 30 & 90 & \underline{10}\\
-{"fib(750)"} & -- & \textbf{0} & \underline{10} & 90 & 600 & 60 & 210 & \underline{10}\\
-{"fib(1000)"} & -- & \textbf{3} & \underline{10} & 110 & 1.1 s & 100 & 360 & 30\\
-{"nrev(500)"} & \textbf{17} & 63 & 120 & 1.5 s & \underline{50} & 90 & 80 & 90\\
-{"nrev(1000)"} & \textbf{71} & 263 & 490 & 5.7 s & \underline{210} & 340 & 320 & 440\\
-{"path_dfst(50)"} & \textbf{2} & \underline{5} & 50 & 540 & 1.9 s & 2.0 s & 80 & 70\\
-{"path_dfst_loop(50)"} & \textbf{15} & \underline{35} & 240 & 2.9 s & 23 s & 25 s & 1.1 s & 360\\
-{"ping_pong(10000)"} & \textbf{7} & 3.5 s & \underline{40} & 850 & 8.1 s & 7.4 s & 70 & 80\\
-{"pyramid(500)"} & \underline{60} & \textbf{58} & 270 & 6.4 s & $\times$ & $\times$ & 400 & 620\\
-{"recognise(20000)"} & \textbf{15} & 68 s & \underline{70} & 950 & 14 s & 14 s & 250 & 140\\
-{"shuttle(2000)"} & \textbf{3} & 239 & \underline{10} & 130 & 380 & 360 & 30 & 40\\
-{"shuttle(5000)"} & \textbf{6} & 1.5 s & \underline{30} & 380 & 2.3 s & 2.2 s & 60 & 70\\
+\hline{"monoidal"} & \underline{1.3 s} & \textbf{904} & 3.2 s & 34 s & 132 s & 128 s & 4.0 s & 4.2 s\\
+{"test_joins"} & \textbf{699} & 1.6 s & \underline{1.2 s} & 11 s & $\times$ & $\times$ & 2.2 s & 2.8 s\\
+{"fib(1000)"} & -- & \textbf{2} & \underline{20} & 120 & 1.1 s & 100 & 350 & 30\\
+{"fib(2000)"} & -- & \textbf{7} & \underline{30} & 240 & 4.3 s & 380 & 1.6 s & 50\\
+{"nrev(500)"} & \textbf{17} & 65 & 140 & 1.5 s & \underline{50} & 100 & 80 & 90\\
+{"nrev(1000)"} & \textbf{70} & 251 & 490 & 6.0 s & \underline{210} & 360 & 310 & 340\\
+{"path_dfst(50)"} & \textbf{4} & \underline{6} & 40 & 520 & 1.9 s & 2.0 s & 70 & 70\\
+{"path_dfst(100)"} & \textbf{24} & \underline{40} & 380 & 4.6 s & 60 s & 83 s & 460 & 430\\
+{"path_dfst_loop(50)"} & \textbf{15} & \underline{37} & 240 & 2.9 s & 22 s & 24 s & 1.1 s & 340\\
+{"ping_pong(10000)"} & \textbf{5} & 3.5 s & \underline{40} & 760 & 7.3 s & 7.3 s & 60 & 80\\
+{"pyramid(500)"} & \underline{47} & \textbf{43} & 260 & 6.0 s & $\times$ & $\times$ & 370 & 610\\
+{"recognise(20000)"} & \textbf{14} & 66 s & \underline{70} & 950 & 13 s & 13 s & 190 & 140\\
+{"shuttle(2000)"} & \textbf{2} & 229 & \underline{20} & 140 & 370 & 360 & 30 & \underline{20}\\
+{"shuttle(5000)"} & \textbf{5} & 1.4 s & \underline{30} & 400 & 2.2 s & 2.2 s & 70 & 70\\
 \hline\end{tabular}
