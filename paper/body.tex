@@ -759,7 +759,8 @@ Notably, the na\"ive reverse benchmark "nrev(_)" does not involve any consumer c
 is called just once, producing one answer, and so this benchmark does not benefit from tabling at all.
 Thus, the timing results give an indication of the minimum overhead introduced by the tabling system.
 The results are shown in \tabrf{timings}, and a subset of the results illustrated graphically in
-\figrf{speed}.
+\figrf{speed}. The benchmarks were run on a 2012 MacBook Pro with a \unit[2.5]{GHz} Core i5 processor and 
+\unit[8]{GB} of memory.
 
 \begin{table}
 \small%
@@ -771,20 +772,21 @@ Times are milliseconds unless explicitly stated in seconds. In each row, the bes
 is typeset in boldface and the second best time is underlined. YAP does not include
 support for arbitrary precision integer arithmetic and so was not able to run
 the Fibonacci benchmark at the given sizes. A $\bot$ indicates that the benchmark
-did not complete within the allowed time of 240 s. \tablab{timings}}
+did not complete within the allowed time of \unit[240]{s}. \tablab{timings}}
 \end{table}
 
 \begin{figure}
   \begin{center}
+    \hspace*{-1em}%
     \begin{tabular}{@{}c@{}c@{}}
-      \colfig[0.5]{fib(1000)}
-    & \colfig[0.5]{nrev(1000)}
+      \colfig[0.55]{fib(1000)}
+    & \colfig[0.55]{nrev(1000)}
     \\
-      \colfig[0.5]{shuttle(2000)}
-    & \colfig[0.5]{ping_pong(10000)}
+      \colfig[0.55]{shuttle(2000)}
+    & \colfig[0.55]{ping_pong(10000)}
     \\
-      \colfig[0.5]{recognise(20000)}
-    & \colfig[0.5]{monoidal}
+      \colfig[0.55]{recognise(20000)}
+    & \colfig[0.55]{monoidal}
   \end{tabular}
   \end{center}
   \caption{Performance of several tabling implementations on a subset of benchmarks. The horizontal
