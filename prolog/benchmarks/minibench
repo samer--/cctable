@@ -7,8 +7,8 @@ function runall {
 	$1 fib.pl 2000
 	$1 naiveReverse.pl 500
 	$1 naiveReverse.pl 1000
-	$1 shuttle.pl 2000
 	$1 shuttle.pl 5000
+	$1 shuttle.pl 10000
 	$1 pingpong.pl 10000
 	$1 pDoubleFirst.pl 50
 	$1 pDoubleFirst.pl 100

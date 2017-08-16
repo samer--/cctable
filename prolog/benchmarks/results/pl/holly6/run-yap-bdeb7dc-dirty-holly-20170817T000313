@@ -1,0 +1,12 @@
+imp_case_time(yap, nrev(500), 17).
+imp_case_time(yap, nrev(1000), 65).
+imp_case_time(yap, shuttle(5000), 6).
+imp_case_time(yap, shuttle(10000), 10).
+imp_case_time(yap, ping_pong(10000), 6).
+imp_case_time(yap, path_dfst(50), 3).
+imp_case_time(yap, path_dfst(100), 21).
+imp_case_time(yap, path_dfst_loop(50), 15).
+imp_case_time(yap, recognise(20000), 15).
+imp_case_time(yap, pyramid(500), 53).
+imp_case_time(yap, test_joins, 674).
+imp_case_time(yap, monoidal, 1327).

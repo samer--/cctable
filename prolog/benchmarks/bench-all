@@ -1,6 +1,6 @@
 #!/bin/bash
 dest="$1"
 for f in pl plc; do ./minibench "run-swipl desouter $f" 2 results/pl/$dest; done
-for f in db db_kp; do ./minibench "run-swipl cctable cctable_$f" 2 results/pl/$dest; done
 for f in trie trie_kp trie_1p trie_kp_1p; do ./minibench "run-swipl cctable cctable_$f" 2 results/pl/$dest; done
-for f in env env_1p env_lc mono_kp mono_lc; do ./minibench "run-swipl cctable cctable_$f" 2 results/pl/$dest; done
+for f in db db_kp; do ./minibench "run-swipl cctable cctable_$f" 2 results/pl/$dest; done
+# for f in env env_1p env_lc mono_kp mono_lc; do ./minibench "run-swipl cctable cctable_$f" 2 results/pl/$dest; done

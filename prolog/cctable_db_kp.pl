@@ -7,7 +7,6 @@
    assertz/1 to add further consumers.
 */
 
-:- use_module(library/cctools,  [clean_cont/2]).
 :- use_module(library/terms,    [numbervars_copy/2]).
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
 :- use_module(library(rbutils)).
@@ -37,13 +36,12 @@ run_tab(Goal, Ans) :-
    cont_tab(Status, Ans).
 
 cont_tab(done, _).
-cont_tab(susp(Work, Cont0), Ans) :-
-   clean_cont(Cont0, Cont),
+cont_tab(susp(Work, Cont), Ans) :-
    term_variables(Work,Y), K = k(Y,Ans,Cont),
    numbervars_copy(Work, VC),
    (  producer(VC)
    -> assertz(consumer(VC, K)), solution(VC,Y), run_tab(Cont, Ans)
-   ;  assert(producer(VC)), assert(consumer(VC,K)), 
+   ;  assert(producer(VC)), assert(consumer(VC,K)),
       run_tab(producer(VC, \Y^Work, Ans), Ans)
    ).
 

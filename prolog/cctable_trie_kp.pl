@@ -8,7 +8,6 @@
    Double prompt version using run_nb_ref/2.
 */
 
-:- use_module(library/cctools,  [clean_cont/2]).
 :- use_module(library/ccnbref,  [run_nb_ref/1, nbref_new/2]).
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
 :- use_module(library(lambdaki)).
@@ -30,8 +29,7 @@ run_tab(Goal, Trie, Ans) :-
    cont_tab(Status, Trie, Ans).
 
 cont_tab(done, _, _).
-cont_tab(susp(Work, Cont0), Trie, Ans) :-
-   clean_cont(Cont0, Cont),
+cont_tab(susp(Work, Cont), Trie, Ans) :-
    term_variables(Work,Y), K = k(Y,Ans,Cont),
    (  trie_lookup(Trie, Work, tab(Solns,Conts))
    -> lref_add(Conts, K),
