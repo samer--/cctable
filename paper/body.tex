@@ -32,25 +32,25 @@ passing style \citep{SussmanSteele1975} to achieve the same effect, allowing thr
 computation to be suspended and resumed multiple times. Indeed, transformation of a program
 into continuation passing style, or the use of continuation capturing control operators
 such as |call-with-current-continuation| in Scheme, is a very powerful approach
-to implementing many computational effects within a declarative language \cite{Filinski1999}.
+to implementing many computational effects within a declarative language \citep{Filinski1999}.
 
 Continuation passing style has been investigated as a basis for implementing Prolog itself
 \citep{TarauDahl1994,Lindgren1994,Neumerkel1995} and for providing useful computational effects
-from within in Prolog \citep{TrauDahl1994a,TarauDahl1998}. 
-[Tabling with continuations: \cite{De-GuzmanCarroHermenegildo2008,GuzmanCarroHermenegildo2008}
-What about Ramesh and Chen (1994,1997)?]
-Recently, continuation capturing control operators have been implemented in hProlog and
-SWI Prolog \citep{SchrijversDemoenDesouter2013}, and subsequently used to implement
+from within in Prolog \citep{TarauDahl1994a,TarauDahl1998}. 
+Continuations were also the basis of \citepos{GuzmanCarroHermenegildo2008} 
+implementation of tabling, which required a fairly extensive source level program
+transformation to make the continuations available.
+
+Recently, continuation capturing control operators have been implemented in hProlog 
+\citep{SchrijversDemoenDesouter2013}, and subsequently used to implement
 tabling completely in Prolog, without any further low level support 
-\cite{DesouterVan-DoorenSchrijvers2015}. This report describes a similar approach, first
+\citep{DesouterVan-DoorenSchrijvers2015}. This report describes a similar approach, first
 translating \citepos{Johnson1995} functional memoisation into pure, declarative Prolog (in \secrf{functional}),
 then (in \secrf{idiomatic}) making minimal changes to implement tabling as it is more usually seen in Prolog,
 while retaining most of the declarativeness of the functional version, and finally (in \secrf{complexity}) analysing
 the computation complexity of the system and making a small
 number of targeted optimisations to yield acceptable performance. Concluding remarks are to be found
 in \secrf{conclusions} and supplementary code in the appendices.
-
-[Contribution? Differences from previous methods?]
 
 The system presented here was developed using SWI Prolog \citep{WielemakerSchrijversTriska2012},
 which includes an implementation of delimited continuations
@@ -585,7 +585,7 @@ theoretical point of view, but seems to be unavoidable within the framework
 of current Prolog systems. 
 
 \subsection{Complexity analysis}
-\seclab{complexity}
+\seclab{complexity-metrics}
 
 We can begin to quantify the costs of various copying operations as follows.
 Given an application involving tabled predicates, let $N_p$ be the number
@@ -751,7 +751,7 @@ with the parameters indicated.
 The benchmarks themselves were derived from code available at \url{https://github.com/JanWielemaker/tabling_benchmarks}.
 
 Each of these benchmarks results in a certain pattern of tabled calls, which can be characterised
-as in \secrf{complexity} in terms of the number of producers, consumers and solutions, as follows:
+as in \secrf{complexity-metrics} in terms of the number of producers, consumers and solutions, as follows:
 \begin{center}
   \input{../prolog/benchmarks/metrics}
 \end{center}
