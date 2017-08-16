@@ -661,8 +661,8 @@ the low-level "nb_linkval/2" operation to avoid copying the continuations alread
 list.
 
 While developing approaches to managing the collection of continuations efficiently,
-it became clear that size of the continuation terms can be significant factor in some problems, 
-most obviously in Fibonacci benchmark, where the total size
+it became clear that size of the continuation terms can be a significant factor in some problems,
+most obviously in the Fibonacci benchmark, where the total size
 of the continuations was found to grow quadratically with the size of the problem.
 Discussions with Jan Wielemaker, the principal author of SWI Prolog, lead to the conclusion
 that there were two causes of this. Firstly (and most easily dealt with) the inclusion
@@ -777,16 +777,16 @@ did not complete within the allowed time of \unit[240]{s}. \tablab{timings}}
 
 \begin{figure}
   \begin{center}
-    \hspace*{-1em}%
-    \begin{tabular}{@{}c@{}c@{}}
-      \colfig[0.55]{fib(1000)}
-    & \colfig[0.55]{nrev(1000)}
+    \hspace*{-1.2em}%
+    \begin{tabular}{@{}c@{\hspace{-2em}}c@{}}
+      \colfig[0.58]{fib(1000)}
+    & \colfig[0.58]{nrev(1000)}
     \\
-      \colfig[0.55]{shuttle(2000)}
-    & \colfig[0.55]{ping_pong(10000)}
+      \colfig[0.58]{shuttle(2000)}
+    & \colfig[0.58]{ping_pong(10000)}
     \\
-      \colfig[0.55]{recognise(20000)}
-    & \colfig[0.55]{monoidal}
+      \colfig[0.58]{recognise(20000)}
+    & \colfig[0.58]{monoidal}
   \end{tabular}
   \end{center}
   \caption{Performance of several tabling implementations on a subset of benchmarks. The horizontal
@@ -804,7 +804,7 @@ tabling algorithm, like the one presented here, is able to produce solutions
 as they are found, whereas Desouter et al.'s algorithm (both implementations) finds
 all solutions before producing the first one. Hence the comparison is a bit misleading,
 and so to produce the benchmarks here, the code was modified to measure the
-time find all solutions.}
+time to find all solutions.}
 
 B-Prolog is also a very fast Prolog, but uses a different tabling algorithm,
 \emph{linear tabling} \citep{ShenYuanYou2001}, with quite different characteristics. It performs 
