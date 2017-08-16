@@ -33,13 +33,6 @@ P.~C. de~Guzman, M.~Carro, and M.~V. Hermenegildo.
   International Colloquium on Implementation of Constraint and Logic
   Programming Systems (CICLOPS 2008)}, pages 75--90, Udine, December 2008.
 
-\bibitem[De~Guzm{\'a}n et~al.(2008)De~Guzm{\'a}n, Carro, Hermenegildo, Silva,
-  and Rocha]{De-GuzmanCarroHermenegildo2008}
-P.~C. De~Guzm{\'a}n, M.~Carro, M.~V. Hermenegildo, C.~Silva, and R.~Rocha.
-\newblock An improved continuation call-based implementation of tabling.
-\newblock In \emph{Practical Aspects of Declarative Languages}, pages 197--213.
-  Springer, 2008.
-
 \bibitem[Desouter et~al.(2015)Desouter, Van~Dooren, and
   Schrijvers]{DesouterVan-DoorenSchrijvers2015}
 B.~Desouter, M.~Van~Dooren, and T.~Schrijvers.
@@ -79,7 +72,7 @@ M.~Johnson.
 
 \bibitem[Kiselyov(2012)]{Kiselyov2012}
 O.~Kiselyov.
-\newblock Delimited control in ocaml, abstractly and concretely.
+\newblock Delimited control in {OC}aml, abstractly and concretely.
 \newblock \emph{Theoretical Computer Science}, 435:\penalty0 56--76, 2012.
 
 \bibitem[Leermakers(1993)]{Leermakers1993}
@@ -177,12 +170,19 @@ H.~Tamaki and T.~Sato.
 \newblock In \emph{Third international conference on logic programming}, pages
   84--98. Springer, 1986.
 
-\bibitem[Tarau and Dahl(1994)]{TarauDahl1994}
+\bibitem[Tarau and Dahl(1994{\natexlab{a}})]{TarauDahl1994}
 P.~Tarau and V.~Dahl.
 \newblock Logic programming and logic grammars with binarization and
   first-order continuations.
 \newblock In \emph{LOPSTR'94: 4th Int. Workshop on Logic Program Synthesis and
-  Transformation, Pisa}, volume 883, 1994.
+  Transformation, Pisa}, volume 883, 1994{\natexlab{a}}.
+
+\bibitem[Tarau and Dahl(1994{\natexlab{b}})]{TarauDahl1994a}
+P.~Tarau and V.~Dahl.
+\newblock Logic programming and logic grammars with first-order continuations.
+\newblock In \emph{Logic Program Synthesis and
+  Transformation---Meta-Programming in Logic}, pages 215--230. Springer,
+  1994{\natexlab{b}}.
 
 \bibitem[Tarau and Dahl(1998)]{TarauDahl1998}
 P.~Tarau and V.~Dahl.
