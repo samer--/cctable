@@ -9,7 +9,7 @@
 :- multifile imp_case_time/3.
 
 loadall :- 
-   forall(find_files(in('results/pl/holly2','*'), F),
+   forall(find_files(in('results/pl/holly3','*'), F),
 			 (writeln(loading:F), load_files([F],[]))).
 
 :- initialization loadall.

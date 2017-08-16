@@ -1,0 +1,14 @@
+imp_case_time(cctable_db, fib(1000), 1490).
+imp_case_time(cctable_db, fib(2000), 6600).
+imp_case_time(cctable_db, nrev(500), 60).
+imp_case_time(cctable_db, nrev(1000), 250).
+imp_case_time(cctable_db, shuttle(2000), 480).
+imp_case_time(cctable_db, shuttle(5000), 2240).
+imp_case_time(cctable_db, ping_pong(10000), 7640).
+imp_case_time(cctable_db, path_dfst(50), 1950).
+imp_case_time(cctable_db, path_dfst(100), 64780).
+imp_case_time(cctable_db, path_dfst_loop(50), 22590).
+imp_case_time(cctable_db, recognise(20000), 14090).
+imp_case_time(cctable_db, pyramid(500), inf).
+imp_case_time(cctable_db, test_joins, inf).
+imp_case_time(cctable_db, monoidal, 155280).

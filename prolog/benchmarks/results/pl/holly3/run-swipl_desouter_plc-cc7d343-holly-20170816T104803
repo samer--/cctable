@@ -1,0 +1,14 @@
+imp_case_time(desouter(plc), fib(1000), 30).
+imp_case_time(desouter(plc), fib(2000), 30).
+imp_case_time(desouter(plc), nrev(500), 130).
+imp_case_time(desouter(plc), nrev(1000), 490).
+imp_case_time(desouter(plc), shuttle(2000), 10).
+imp_case_time(desouter(plc), shuttle(5000), 30).
+imp_case_time(desouter(plc), ping_pong(10000), 50).
+imp_case_time(desouter(plc), path_dfst(50), 50).
+imp_case_time(desouter(plc), path_dfst(100), 370).
+imp_case_time(desouter(plc), path_dfst_loop(50), 230).
+imp_case_time(desouter(plc), recognise(20000), 70).
+imp_case_time(desouter(plc), pyramid(500), 250).
+imp_case_time(desouter(plc), test_joins, 1230).
+imp_case_time(desouter(plc), monoidal, 3180).

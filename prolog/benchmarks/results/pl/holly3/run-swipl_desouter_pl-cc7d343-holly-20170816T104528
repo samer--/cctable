@@ -1,0 +1,14 @@
+imp_case_time(desouter(pl), fib(1000), 110).
+imp_case_time(desouter(pl), fib(2000), 240).
+imp_case_time(desouter(pl), nrev(500), 1600).
+imp_case_time(desouter(pl), nrev(1000), 5830).
+imp_case_time(desouter(pl), shuttle(2000), 130).
+imp_case_time(desouter(pl), shuttle(5000), 380).
+imp_case_time(desouter(pl), ping_pong(10000), 770).
+imp_case_time(desouter(pl), path_dfst(50), 540).
+imp_case_time(desouter(pl), path_dfst(100), 4380).
+imp_case_time(desouter(pl), path_dfst_loop(50), 2970).
+imp_case_time(desouter(pl), recognise(20000), 1310).
+imp_case_time(desouter(pl), pyramid(500), 6670).
+imp_case_time(desouter(pl), test_joins, 11310).
+imp_case_time(desouter(pl), monoidal, 34570).
