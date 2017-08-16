@@ -631,7 +631,8 @@ all these costs, in particular the quadratic ones, which explains why it is so s
 on all but the smallest problems.
 
 There are many strategies for reducing or eliminating these copying costs,
-several of which are explored in the code repository accompanying this report.
+several of which are explored in the code repository accompanying this report.%
+\footnote{\url{https://github.com/samer--/cctable}}
 Although a complete description of these is beyond the scope of this report, a few
 strategies will be discussed below.
 
@@ -644,7 +645,7 @@ to achieve a complete factorisation of the state of
 the system. Although the overheads associated with using dynamic predicates are larger
 than those for non-backtrackable global variables, the asymptotic complexity means
 that performance is still better than some of the implementations (not shown in the table)
-using non-backtrackable global variables to carry badly factorised state.
+using non-backtrackable global variables to carry less completely factorised state.
 
 Another way to avoid a quadratic cost when adding solutions is to use the SWI Prolog
 "tries" library, which allows a single immutable reference to point to a mutable
@@ -661,26 +662,28 @@ the low-level "nb_linkval/2" operation to avoid copying the continuations alread
 list.
 
 While developing approaches to managing the collection of continuations efficiently,
-it became clear that size of the continuation terms can be a significant factor in some problems,
+it became clear that size of the continuation terms can be a significant factor, % in some problems,
 most obviously in the Fibonacci benchmark, where the total size
 of the continuations was found to grow quadratically with the size of the problem.
-Discussions with Jan Wielemaker, the principal author of SWI Prolog, lead to the conclusion
+Discussions with Jan Wielemaker, the main author of SWI Prolog, lead to the conclusion
 that there were two causes of this. Firstly (and most easily dealt with) the inclusion
 of the producer's continuation ("KP") as a parameter to "producer/4" meant that continuations
 were being included as values in the stack frames as part of other subsequently captured continuations.
 This can be avoided by including the producer's continuation in the data structure used
 to store the consumers' continuations, rather than passing it as a parameter. As long
-as care is taken to keep the producer's continuation at the head of the list, the 
-`incremental' property of the system (with solutions being delivered as they are found)
+as producer's continuation is kept at the head of the list, the 
+`incrementality' of the system (solutions being delivered as they are found)
 is preserved.
 
 The second cause was that the process of reactivating a continuation which then suspends itself
 resulting in a new continuation, which is then reactivated, which then suspends itself,
-and so on---results in continuations which gradually accumulate non-operative stack frames.
+and so on---resulted in continuations which gradually accumulated non-operative stack frames.
 This lead Jan Wielemaker to introduce optimisations in the low level implementation of 
 "shift/1", similar in spirit to \emph{tail call}
-optimisations, to remove these stack frames. Coupled with some extra filtering of ineffectual
-continuation frames at the Prolog level, this solved the continuation growth problem 
+optimisations, to remove these stack frames.
+% Coupled with some extra filtering of ineffectual
+% continuation frames at the Prolog level, 
+This solved the continuation growth problem 
 completely, resulting in approximately linear time complexity on the Fibonacci benchmark using
 the implementation "cctable(trie)/kp".
 An equivalent modification was also applied to the dynamic database version 
