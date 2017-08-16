@@ -14,35 +14,44 @@ Many variations.
 
 ### Implementations:
 
-- cctable_lc
+- `cctable_mono_lc`
 : Monolithic state. Very slow due to state copying.
 
-- cctable_env_lc
+- `cctable_mono_kp`
+: Monolithic state, but now avoiding extra continuation copy, and with some continuation size reduction measures taken.
+
+- `cctable_env_lc`
 : Factorise state by variant class using ccnbenv. Better.
 
-- cctable_env
-: Like cctable_env, but avoiding double copy of all continuations for each solution found.
+- `cctable_env`
+: Like `cctable_env`, but avoiding double copy of all continuations for each solution found.
 
-- cctable_env_1p
-: Like cctable_env_nl, but not using delimited control to provide non-backtrackable state, hence 1 prompt
+- `cctable_env_1p`
+: Like `cctable_env_nl`, but not using delimited control to provide non-backtrackable state, hence 1 prompt
 
-- cctable_db
+- `cctable_db`
 : Using thread local dynamic predicates to factorise state completely, avoiding quadratic costs, also no lambda copy and 1 prompt
 
-- cctable_db_kp
+- `cctable_db_kp`
 : Using thread local dynamic predicates to factorise state completely, avoiding quadratic costs, also no lambda copy and 1 prompt
 Smaller continuations by not passing producer continuation as argument.
 
-- cctable_trie_1p
+- `cctable_trie`
 : Using SWI tries to store tables and solutions for each variant class, avoiding two quadratic costs.
 Also using a reference to a mutable list to store consumer continuations instead of storing the list directly in the table entry,
-avoiding another quadratic cost. Also 1 prompt.
+avoiding another quadratic cost.
 
-- cctable_trie_kp_1p
-: Like cctable_trie_nl_1p but including producer continuation with the list of consumer
+- `cctable_trie_1p`
+: Like `cctable_trie`, but using only 1 prompt, ie not using a prompt to manage nonbacktrackable state.
+
+- `cctable_trie_kp`
+: Like `cctable_trie_1p` but including producer continuation with the list of consumer
 continuations to avoid passing it as an argument to `producer/4`, since this
 causes the size of the captured continuations to grow in long conjunctive chains
 of tabled predicates.
 
-Best so far are cctable_trie_kp_1p and cctable_trie_kp.
+- `cctable_trie_kp_1p`
+: Like `cctable_trie_kp`, but using only 1 prompt, ie not using a prompt to manage nonbacktrackable state.
+
+Best so far are `cctable_trie_kp_1p` and `cctable_trie_kp`.
 
