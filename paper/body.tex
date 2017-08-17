@@ -659,7 +659,8 @@ with each producer, as it is not appropriate to treat them as a set or test them
 Hence, to avoid quadratic costs here, in "cctable(trie)", a system of references to 
 growable lists is introduced, built using
 the low-level "nb_linkval/2" operation to avoid copying the continuations already in the
-list.
+list, in combination with "ccnbref", a module providing a delimited context for safely managing 
+non-backtrackable mutable storage cells (see appendix~\ref{app:ccnbref}).
 
 While developing approaches to managing the collection of continuations efficiently,
 it became clear that size of the continuation terms can be a significant factor, % in some problems,
@@ -675,9 +676,12 @@ as producer's continuation is kept at the head of the list, the
 `incrementality' of the system (solutions being delivered as they are found)
 is preserved.
 
-The second cause was that the process of reactivating a continuation which then suspends itself
-resulting in a new continuation, which is then reactivated, which then suspends itself,
-and so on---resulted in continuations which gradually accumulated non-operative stack frames.
+The second cause was that the process of 
+repeatedly capturing and reactivating continuations along a single conjunctive computational path
+% reactivating a continuation which then suspends itself
+% resulting in a new continuation, which is then reactivated, which then suspends itself,
+% and so on---
+resulted in continuations which gradually accumulated non-operative stack frames.
 This lead Jan Wielemaker to introduce optimisations in the low level implementation of 
 "shift/1", similar in spirit to \emph{tail call}
 optimisations, to remove these stack frames.
@@ -718,8 +722,7 @@ than copying them individually when calling lambda terms.
      -> lref_add(Conts, K),
         trie_gen(Solns, Y, _),
         run_tab(Cont, Trie, Ans)
-     ;  lref_new(K, Conts),
-        trie_new(Solns),
+     ;  lref_new(K, Conts), trie_new(Solns),
         trie_insert(Trie, Head, tab(Solns,Conts)),
         run_tab(producer(\Y^Head, Conts, Solns, Ans), Trie, Ans)
      ).
@@ -727,8 +730,8 @@ than copying them individually when calling lambda terms.
   ~producer~(Generate, Conts, Solns, Ans) :-
      call(Generate, Y),
      trie_insert(Solns, Y, t),
-     lref_get(Conts,Ks), member(k(Y,Ans,Cont),Ks),
-     call(Cont).
+     lref_get(Conts,Ks), 
+     member(k(Y,Ans,Cont),Ks), call(Cont).
 
   ~lref_new~(K0, Ref) :- nbref_new([K0], Ref).
   ~lref_get~(Ref, Xs) :- nb_getval(Ref, Ys), copy_term(Ys,Xs).
@@ -751,7 +754,7 @@ YAP and B-Prolog were also tested, though it should be noted that these are both
 much faster Prologs in general and that in both tabling is implemented at a low level.
 Also, YAP does not support arbitrary precision arithmetic, and so cannot run the Fibonacci benchmark
 with the parameters indicated.
-The benchmarks themselves were derived from code available at \url{https://github.com/JanWielemaker/tabling_benchmarks}.
+The benchmarks themselves were derived from code available online.\footnote{\url{https://github.com/JanWielemaker/tabling_benchmarks}}
 
 Each of these benchmarks results in a certain pattern of tabled calls, which can be characterised
 as in \secrf{complexity-metrics} in terms of the number of producers, consumers and solutions, as follows:
@@ -809,7 +812,7 @@ all solutions before producing the first one. Hence the comparison is a bit misl
 and so to produce the benchmarks here, the code was modified to measure the
 time to find all solutions.}
 
-B-Prolog is also a very fast Prolog, but uses a different tabling algorithm,
+B-Prolog uses a different tabling algorithm,
 \emph{linear tabling} \citep{ShenYuanYou2001}, with quite different characteristics. It performs 
 very well on many benchmarks but relatively poorly on those which involve a lot of non-determinism.
 
@@ -832,30 +835,35 @@ competetive on several of the other benchmarks.
 \seclab{conclusions}
 
 The implementations presented in this report were largely derived by analogy from the OCaml
-version described by \cite{Abdallah2017a}, but they share many similarities with
-the tabling library of \cite{DesouterVan-DoorenSchrijvers2015}: for example,
-the use of "numbervars/3" to represent variant classes as ground terms. In
-addition, the drive for acceptable asymptotic performance lead to the adoption
-of mutable tries for managing both the collection of variant classes and the sets
-of solutions for each variant class.
+version described by \cite{Abdallah2017a}, but as they are built on the same set of delimited
+control operators as the tabling library of \cite{DesouterVan-DoorenSchrijvers2015}, they all
+share many common features: non-backtrackable mutable data structures for mapping variant calls
+to table data; structures for collecting solutions; structures for collecting continuations and
+reactivating them when solutions become available, and so on.
 
 However, there are several significant differences.
-The control structure and scheduling mechanism is more declarative, with less
-reliance on side effects. In terms of the amount of code it is much simpler: Desouter
+The control structure and scheduling mechanism is simpler and more declarative, with less
+reliance on side effects. There is much less code: Desouter
 et al quote a figure of 244 lines of code, excluding the implementation of tries,
-whereas the equivalent functionality here is provided by approximately 80 lines of code.
-[Check this---what should be included?]
+whereas the main tabling code here is about 40 lines of code, plus about 20 for program transformation
+and 20 or so in general purpose libraries.
 In use, it delivers solutions incrementally, rather than having to collect them all before 
 delivering the first one, which could amount to a significant saving in execution time
 in certain applications.
 
 It was found while profiling the initial and most declarative implementation that the
 largest contributions to execution time came from term copying and garbage collection.
-This is an avoidable factor when using non-backtrackable state in Prolog, tends to force
+This is an unavoidable factor when using non-backtrackable state in Prolog, and tends to force
 the introduction of more separate pieces of mutable state in order to get acceptable
 performance. However, it is still possible to use delimited control operators, with a relatively
 low cost, to mange these pieces of mutable state with a minimal impact on the declarativeness
-of most of the program.
+of the rest of the program.
+
+% Development of this tabling system lead to the detection and correction of a bug in the implementation
+% of delimited continuations in SWI Prolog, related to the management of nested contexts
+% (including "reset/3" contexts \emph{and} "catch/3" contexts for trapping exceptions). It also
+% lead to an optimisation in the managements of captured non-operative continuation frames,
+% which can lead to a large reduction in the size of captured continuations.
 
 The fastest implementation presented here, "cctable(trie)/kp", is within a factor of about 
 2 of the tabling system currently included in SWI Prolog, and so with a little more 
@@ -873,7 +881,8 @@ and greater code simplicity and declarativeness.
 Modules "lambdaki", "ccstate" and "delimcc" can be found in the SWI Prolog
 add-on package "genutils", which can be installed in SWI Prolog with the command
 "pack_install(genutils)". The rest of the code presented in this report can be
-found at \url{https://github.com/samer--/cctable}.
+found (in some cases in a slightly expanded and generalised form) 
+at \url{https://github.com/samer--/cctable}.
 
 \subsection{Lambda abstractions}
 \label{sec:lambdaki}
@@ -904,8 +913,9 @@ The module "ccnbstate" implements a delimited context "run_nb_state/4"
 providing one piece of non-backtrackable mutable state, which can be modified with any binary predicate
 using "app/2" or retrieved using "get/2". The global variable used to store the state
 is protected from accidental interference and is destroyed when the stateful
-computation is finished. This code is included in the module "ccstate", which 
-is part of the SWI Prolog add-on package "genutils".
+computation is finished. 
+% This code is included in the module "ccstate", which 
+% is part of the SWI Prolog add-on package "genutils".
 \begin{prolog-framed}[name=ccnbstate]
   :- module(ccnbstate, [run_nb_state/4, app/2, get/2]).
   :- use_module(library(delimcc)).
@@ -930,10 +940,45 @@ is part of the SWI Prolog add-on package "genutils".
   ~handle~(app(P),K) :- nb_getval(K,S1), call(P,S1,S2), nb_setval(K,S2).
 \end{prolog-framed}
 
+\subsection{Non-backtrackable mutable references}
+\label{app:ccnbref}
+
+This module implements a delimited context "run_nb_ref/1" 
+for supplying unique references
+to non-backtrackable mutable storage cells using "nbref_new/2".
+These cells are guaranteed to be
+released when the context is closed. 
+% Each instance of the delimited
+% context has a unique identifier, to prevent interference
+% between the references managed by each.
+\begin{prolog-framed}[name=ccnbref]
+  :- module(ccnbref, [run_nb_ref/1, nbref_new/2]).
+  :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
+
+  ~nbref_new~(Val, Ref) :- p_shift(nbref, new(Val,Ref)).
+
+  :- meta_predicate run_nb_ref(0).
+  ~run_nb_ref~(Goal) :- 
+    setup_call_cleanup(setup(E), run(Goal, E), cleanup(E)).
+
+  ~setup~(E) :- gensym(nbref,ID), atom_concat(ID,`.',E), nb_setval(E, 0).
+  ~delete~(E,I) :- atomic_concat(E,I,Ref), nb_delete(Ref).
+  ~cleanup~(E) :- nb_getval(E, N), nb_delete(E), 
+                 forall(between(1,N,I), delete(E,I)).
+
+  ~run~(Goal, E) :- p_reset(nbref, Goal, Status), cont(Status, E).
+
+  ~cont~(done, _).
+  ~cont~(susp(new(Val,Ref),Cont), E) :- 
+    nb_getval(E, I), J is I+1, atomic_concat(E, J, Ref),
+    nb_setval(Ref, Val), nb_setval(E,J).
+    run(Cont, E).
+\end{prolog-framed}
+
 \subsection{Program transformation}
 \label{sec:ccmacros}
 
-The module "ccmaros" implements a shallow program transformation to support
+The module "ccmacros" implements a shallow program transformation to support
 tabling. Predicates decalared `tabled' are renamed (using the special
 SWI Prolog hook "prolog:rename_predicate/2" to appendng
 a "`#'" to their given name) and the original predicate name defined
