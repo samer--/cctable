@@ -10,11 +10,11 @@ internal details of the implementation.}
 \def\TheTitle{More declarative tabling in Prolog using multi-prompt delimited control}
 
 \def\TheAbstract{%
-Several Prologs include an implementation of \emph{tabling}, an alternative
+Several Prolog implementations include a facility for \emph{tabling}, an alternative
 resolution strategy which uses memoisation to avoid redundant duplication of
 computations. Until relatively recently, tabling has required either low-level
 support in the underlying Prolog engine, or extensive program transormation
-\cite{GuzmanCarroHermenegildo2008}.
+\citep{GuzmanCarroHermenegildo2008}.
 An alternative approach is to 
 augment Prolog with low level support for continuation capturing control operators,
 particularly \emph{delimited continuations}, which have been investigated in the 
@@ -26,11 +26,11 @@ on delimited control operators for Prolog recently introduced by \cite{Schrijver
 In comparison with a previous implementation of tabling for SWI Prolog using delimited
 control \citep{DesouterVan-DoorenSchrijvers2015}, this approach, based on 
 the functional memoising parser combinators of \cite{Johnson1995}, stays closer to
-the declarative core of Prolog, requires less code, and is able deliver solutions
+the declarative core of Prolog, requires less code, and is able to deliver solutions
 from systems of tabled predicates incrementally (as opposed to finding all solutions
 before delivering any to the rest of the program).
 
 A collection of benchmarks shows that a small number of carefully targeted optimisations
-yields performance similar to the highly optimised version of Desouter et al.'s system
-currently included in SWI Prolog.
+yields performance within a factor of about 2 of the highly optimised version of Desouter 
+et al.'s system currently included in SWI Prolog.
 }
