@@ -112,7 +112,10 @@ resume the computation by calling the continuation.
 
 % In order to support the rest of the code presented here,
 We will begin with a module "delimcc" that provides an alternative interface to delimited control that
-uses a well typed result term instead of the `defaulty' and ill-typed "Cont" produced by "reset/3",
+uses a result term that can be tested by pattern matching on the head functor, instead of the `defaulty' 
+"Cont" produced by "reset/3", which requires a test and a cut to be processed correctly.
+% , and takes on two different types (integer or callable term) depending on which case occurs.
+It also 
 and also avoids the non-logical behaviour with partially instantiated "Ball" terms by taking instead
 an explicit first class prompt
 as in \citepos{DyvbigJonesSabry2005} and \citepos{Kiselyov2012} libraries. 
@@ -122,7 +125,7 @@ as in \citepos{DyvbigJonesSabry2005} and \citepos{Kiselyov2012} libraries.
   :- meta_predicate p_reset(+,0,-).
   ~p_reset~(Prompt, Goal, Result) :-
     reset(Goal, Prompt-Signal, Cont),
-    ( Cont==0 -> Result = done
+    ( Cont == 0 -> Result = done
     ; Result = susp(Signal, Cont)
     ).
 
@@ -227,7 +230,7 @@ unbounded supply of references to mutable cells, which can then be manipulated i
   ~ref_app~(R,P)   :- app(ref, store_apply(R,P)).
   ~ref_upd~(R,X,Y) :- app(ref, store_upd(R,X,Y)).
 \end{prolog-framed}
-The library "data/store" is included in the SWI Prolog add-on package "genutils"
+The module "library(data/store)" (see appendix~\ref{sec:library}) is included in the SWI Prolog add-on package "genutils"
 and provides a pure, declarative implementation of a reference-value store using 
 immutable tree data structures.
 
@@ -242,7 +245,8 @@ and one output), which may be recursive or indeed left-recursive. Nondeterminism
 invoked using "choose/2", implemented by the continuation handler "choose/4", and
 finally reified as a list of alternative results. (Library "rbutils" is part of the "genutils"
 add-on package mentioned above, and provides additional tools for working with the
-red-black balanced binary trees implemented in the SWI Prolog built-in library "rbtrees".)
+red-black balanced binary trees implemented in the SWI Prolog built-in library "rbtrees".
+See appendix~\ref{sec:library} for more details.)
 \begin{prolog-framed}[name=ccmemo,numbers=left]
   :- module(ccmemo, [run_memo/2, choose/2, memo/2]).
 
@@ -258,7 +262,6 @@ red-black balanced binary trees implemented in the SWI Prolog built-in library "
 
   ~mem_call~(P,R,X,Y) :- pr_shift(memo, h_mem(P,R,X,Y)).
   ~choose~(Xs,X) :- pr_shift(memo, h_choose(Xs,X)).
-
   :- meta_predicate run_memo(1,-).
   ~run_memo~(P,Result) :- pr_reset(memo, to_list(P), Result).
   ~to_list~(P,[X]) :- call(P,X).
@@ -878,7 +881,7 @@ and greater code simplicity and declarativeness.
 \appendix
 \section{Supporting code}
 
-Modules "lambdaki", "ccstate" and "delimcc" can be found in the SWI Prolog
+Modules "lambdaki", "ccstate", "delimcc" and "rbutils" can be found in the SWI Prolog
 add-on package "genutils", which can be installed in SWI Prolog with the command
 "pack_install(genutils)". The rest of the code presented in this report can be
 found (in some cases in a slightly expanded and generalised form) 
@@ -888,7 +891,7 @@ at \url{https://github.com/samer--/cctable}.
 \label{sec:lambdaki}
 
 This module is a minimal implementation of lambda terms, which are callable terms representing
-predicates taking one or more arguments, which can be useful for high-order programming and
+predicates taking one or more arguments, and can be useful for high-order programming,
 reducing the need to define trivial auxiliary predicates. It is a simplified version of 
 \citepos{Neumerkel2009} "lambda" library,
 supporting only unary and binary application with no free variables.
@@ -1016,5 +1019,74 @@ is defined.
     Head   =.. [H|As], atom_concat(H, `#', W),
     Worker =.. [W|As].
 \end{prolog-framed}
+
+\subsection{Description of library predicates}
+\seclab{library}
+
+The module "rbutils" is an interface to the predicates in the standard SWI Prolog
+module "library(rbtrees)" but with the argument order of some predicates modified.
+The documentation for "rbtrees" is available at
+\url{http://www.swi-prolog.org/pldoc/doc/_SWI_/library/rbtrees.pl}.
+If we let "rbtree(A,B)" denote the type of trees mapping keys of type "A"
+to values of type "B", then the types \cite{SchrijversCostaWielemaker2008}
+and meanings of the predicates used in this report are as follows:
+
+{\parindent 0pt
+\def\dt{\parskip 0.65em\leftskip 0em}
+\def\dd{\parskip 0em \par\leftskip 1.5em}
+
+  \dt "~rb_empty~(-rbtree(A,B))" 
+  \dd "rb_empty(T)" means "T" is an empty red-black tree.
+
+  \dt "~rb_add~(+A, B, +rbtree(A,B), -rbtree(A,B))"
+  \dd "rb_add(K,V,T1,T2)" means K is not in "T1" and "T2"  is the result of
+      adding value "V" under key "K" to "T1".
+
+  \dt "~rb_in~(A, B, +rbtree(A,B))"
+  \dd "rb_in(K,V,T)" means T contains value "V" under key "K".
+
+  \dt "~rb_app~(+pred(B,B), +A, +rbtree(A,B), -rbtree(A,B))"
+  \dd "rb_app(P,K,T1,T2)" means "T2" is the same as "T1" except that the value
+      associated with "K" is "V1" in "T1" and "V2", where "call(P,V1,V2)" is true.
+
+  \dt "~rb_upd~(+A, B, B, +rbtree(A,B), -rbtree(A,B))"
+  \dd "rb_app(K,V1,V2,T1,T2)" means "T2" is the same as "T1" except that the
+      value associated with "K" is "V1" in "T1" and "V2" in "T2".
+
+  \dt "~rb_fold~(+pred(pair(A,B),S,S), +rbtree(A,B), S, S)"
+  \dd "rb_fold(P,T,S1,S2)" means "S2" is the result of folding "P" over a list of key-value
+      pairs "K-V" obtained by traversing the tree.
+
+}
+\vspace{0.5em}
+\noindent
+The "store" module, also included in "genutils", uses "rbtrees" to manage an associative map where 
+a fresh key is allocated each time a new entry is added. The types and meanings of the main predicates
+are:
+{\parindent 0pt
+\def\dt{\parskip 0.65em\leftskip 0em}
+\def\dd{\parskip 0.2em \par\leftskip 1.5em}
+
+  \dt "~store_new~(-store)" 
+  \dd {"store_new(S)"} means {"S"} is an empty store
+
+  \dt "~store_add~(A,-ref(A),+store,-store)" 
+  \dd "store_add(V,R,S1,S2)" means "S2" is the result of adding value "V" to "S1", and "R" is a new
+  reference to the location in "S2" where "V" is stored.
+
+  \dt "~store_app~(+pred(A,A),+ref(A),+store,-store)"
+  \dd "store_app(P,R,S1,S2)" means "store_upd(R,V1,V2,S1,S2), call(P,V1,V2)".
+
+  \dt "~store_upd~(+ref(A),A,A,+store,-store)"
+  \dd "store_upd(R,V1,V2,S1,S2)" means "S1" and "S2" differ only in the value associated with reference "R",
+  which is "V1" is "S1" and "V2" in "S2".
+
+}
+\vspace{0.5em}
+\noindent
+The "tries" library module included with SWI Prolog manages a associative map from arbitrary
+terms as keys to mutable storage cells. Key terms which contain variables are considered
+to match any term in the same variant class. Value terms are copied both on insertion and
+retrieval. Documentation is available at \url{http://www.swi-prolog.org/pldoc/man?section=trie}.
 
 % vim: ts=2 sw=2 expandtab

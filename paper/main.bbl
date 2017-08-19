@@ -1,6 +1,6 @@
 \newcommand{\postscriptref}[1] {(\emph{see} \textbf{#1})}
   \providecommand{\url}[1] {\texttt{#1}}
-\begin{thebibliography}{32}
+\begin{thebibliography}{33}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -135,6 +135,13 @@ F.~C. Pereira and D.~H. Warren.
 H.~H. Porter.
 \newblock Earley deduction.
 \newblock Technical report, Oregon Graduate Center, 1986.
+
+\bibitem[Schrijvers et~al.(2008)Schrijvers, Costa, Wielemaker, and
+  Demoen]{SchrijversCostaWielemaker2008}
+T.~Schrijvers, V.~S. Costa, J.~Wielemaker, and B.~Demoen.
+\newblock Towards typed prolog.
+\newblock In \emph{International Conference on Logic Programming}, pages
+  693--697. Springer, 2008.
 
 \bibitem[Schrijvers et~al.(2013)Schrijvers, Demoen, Desouter, and
   Wielemaker]{SchrijversDemoenDesouter2013}
