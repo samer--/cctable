@@ -4,6 +4,15 @@
    This module provides a declarative implementation of tabling using delimited control.
    This version uses thread local dynamic predicates to manage the table state.
    Also only 1 prompt and no lambda copying continuations.
+
+   This implementation is flawed, because of a lack of atomicity in the view
+   of the overall state of the system as seen by producer/4: the call to 
+   consumer/2 was meant to see only the consumers that exist just after finding
+   the solution Y, but instead, it also sees any consumers that are added while
+   calling the producer's continuation KP. cctable_db_kp.pl does not suffer from
+   this problem, because the producer's continuation is stored in consumer/2,
+   and the call to consumer/2 takes a logical snapshot of the database when it
+   is first called.
 */
 
 :- use_module(library/terms,    [numbervars_copy/2]).
