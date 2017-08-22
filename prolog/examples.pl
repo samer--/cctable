@@ -1,4 +1,4 @@
-:- module(examples, [fib/2, pathl//0, pathr//0, silly//0]).
+:- module(examples, [fib/2, tom_twice/2, pathl//0, pathr//0, silly//0]).
 /** <module> Some tables predicates and grammars */
 
 :- table fib/2.
@@ -16,6 +16,13 @@ edge(c,d).
 edge(d,e).
 edge(d,f).
 edge(f,g).
+
+% Tom's example
+:- table tom/1.
+
+tom(X) :- (X=a; X=b), writeln(tom(X)).
+
+tom_twice(X,Y) :- tom(X), writeln(middle:X), tom(Y), writeln(end:Y).
 
 % four tabled transitive closures of edge/2
 :- table pathl//0, pathl1//0, pathr//0, pathr1//0.
