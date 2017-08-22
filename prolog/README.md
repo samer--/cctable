@@ -27,14 +27,15 @@ Many variations.
 : Like `cctable_env`, but avoiding double copy of all continuations for each solution found.
 
 - `cctable_env_1p`
-: Like `cctable_env_nl`, but not using delimited control to provide non-backtrackable state, hence 1 prompt
+: Like `cctable_env_nl`, but not using delimited control to provide non-backtrackable state, hence 1 prompt.
 
 - `cctable_db`
-: Using thread local dynamic predicates to factorise state completely, avoiding quadratic costs, also no lambda copy and 1 prompt
+: Using thread local dynamic predicates to factorise state completely, avoiding quadratic costs, also no lambda copy and 1 prompt.
+Has a problem with reporting duplicate solutions; see module header for description.
 
 - `cctable_db_kp`
-: Using thread local dynamic predicates to factorise state completely, avoiding quadratic costs, also no lambda copy and 1 prompt
-Smaller continuations by not passing producer continuation as argument.
+: Using thread local dynamic predicates to factorise state completely, avoiding quadratic costs, also no lambda copy and 1 prompt.
+Smaller continuations by not passing producer continuation as argument. Incidentally fixes problem with `cctable_db`.
 
 - `cctable_trie`
 : Using SWI tries to store tables and solutions for each variant class, avoiding two quadratic costs.
