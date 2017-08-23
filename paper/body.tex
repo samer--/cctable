@@ -163,7 +163,7 @@ Note that, before being passed to the handler "H", the raw continuation "Cont" i
 own delimited context
 % , insulating the caller from any computational effects relying on the
 % associated "Prompt" that may be used inside it, 
-and expressed as a unary predicate by using a lambda abstraction "\X^Cont" (see the supporting
+and expressed as a unary predicate by using a lambda term "\X^Cont" (see the supporting
 module "lambdaki" in the appendix~\ref{sec:lambdaki}), which turns the 
 output variable "X" into a parameter,
 and introduces exactly the right copying semantics to allow the continuation to be
@@ -299,7 +299,7 @@ empty memo table for that predicate. The memoised version is a call to "mem_call
 which, invokes the continuation handler "h_mem/6". This works very much like 
 \citepos{Abdallah2017a} functional version: if the memoised predicate has already been applied to
 the input "X", then there will already be an entry in the memo table "T1" (line 25), in which case the
-newly captured continuation, in the form of a two-argument lambda abstraction "Ky", is added to the 
+newly captured continuation, in the form of a two-argument lambda term "Ky", is added to the 
 list of `consumer' continuations associated with "X", and then applied to all
 the results produced by the base predicate "P" so far (line 26), collecting all the 
 final results in the list "Ans". If this is the first time the memoised predicate has been applied to 
@@ -762,7 +762,7 @@ The benchmarks themselves were derived from code available online.\footnote{\url
 Each of these benchmarks results in a certain pattern of tabled calls, which can be characterised
 as in \secrf{complexity-metrics} in terms of the number of producers, consumers and solutions, as follows:
 \begin{center}
-  \input{../prolog/benchmarks/metrics}
+  \input{metrics}
 \end{center}
 Notably, the na\"ive reverse benchmark "nrev(_)" does not involve any consumer calls: each variant class
 is called just once, producing one answer, and so this benchmark does not benefit from tabling at all.
@@ -774,7 +774,7 @@ The results are shown in \tabrf{timings}, and a subset of the results illustrate
 \begin{table}
 \small%
 \begin{center}
-\input{../prolog/benchmarks/timings}
+\input{timings}
 \end{center}
 \caption{Execution times for a variety of benchmarks using several tabling implementations.
 Times are milliseconds unless explicitly stated in seconds. In each row, the best time
@@ -788,14 +788,14 @@ did not complete within the allowed time of \unit[240]{s}. \tablab{timings}}
   \begin{center}
     \hspace*{-1.2em}%
     \begin{tabular}{@{}c@{\hspace{-2em}}c@{}}
-      \colfig[0.58]{fib(1000)}
-    & \colfig[0.58]{nrev(1000)}
+      \colfig[0.58]{figs/fib(1000)}
+    & \colfig[0.58]{figs/nrev(1000)}
     \\
-      \colfig[0.58]{test_joins}
-    & \colfig[0.58]{ping_pong(10000)}
+      \colfig[0.58]{figs/test_joins}
+    & \colfig[0.58]{figs/ping_pong(10000)}
     \\
-      \colfig[0.58]{recognise(20000)}
-    & \colfig[0.58]{monoidal}
+      \colfig[0.58]{figs/recognise(20000)}
+    & \colfig[0.58]{figs/monoidal}
   \end{tabular}
   \end{center}
   \caption{Performance of several tabling implementations on a subset of benchmarks. The horizontal
@@ -887,7 +887,7 @@ add-on package "genutils", which can be installed in SWI Prolog with the command
 found (in some cases in a slightly expanded and generalised form) 
 at \url{https://github.com/samer--/cctable}.
 
-\subsection{Lambda abstractions}
+\subsection{Lambda terms}
 \label{sec:lambdaki}
 
 This module is a minimal implementation of lambda terms, which are callable terms representing

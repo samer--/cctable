@@ -142,13 +142,13 @@ tex_metrics_row(Case-Vals) -->
 setof(Pred,Xs) :- setof(X,call(Pred,X),Xs).
 
 case_pdf_file(C, File) :-
-   format(string(File),'figs/~p.pdf',[C]).
+   format(string(File),'../../paper/figs/~p.pdf',[C]).
 
 refresh_table :-
-   with_output_to_file('timings.tex', writedcg(tex_table([cctable_trie_1p, cctable_trie_kp_1p]))).
+   with_output_to_file('../../paper/timings.tex', writedcg(tex_table([cctable_trie_1p, cctable_trie_kp_1p]))).
 
 refresh_metrics :-
-   with_output_to_file('metrics.tex', writedcg(tex_metrics_table)).
+   with_output_to_file('../../paper/metrics.tex', writedcg(tex_metrics_table)).
 
 % case, producers, consumers, solutions
 metrics(fib(1000),          1001,  998, 1001).
