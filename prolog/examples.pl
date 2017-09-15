@@ -1,13 +1,21 @@
-:- module(examples, [fib/2, tom_twice/2, pathl//0, pathr//0, silly//0]).
+:- module(examples, [fib/2, fib_clp/2, tom_twice/2, pathl//0, pathr//0, silly//0]).
 /** <module> Some tables predicates and grammars */
 
-:- table fib/2.
+:- use_module(library(clpfd)).
+
+:- table fib/2, fib_clp/2.
 fib(0,1).
 fib(1,1).
 fib(N,X) :-
    succ(M,N), fib(M,Y),
    succ(L,M), fib(L,Z),
    X is Y + Z.
+
+fib_clp(0,1).
+fib_clp(1,1).
+fib_clp(N,X) :-
+   M #= N-1, L #= M-1, L #>= 0, X #= Y+Z,
+   fib_clp(M,Y), fib_clp(L,Z).
 
 edge(a,b).
 edge(a,c).
