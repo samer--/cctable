@@ -8,7 +8,7 @@
    Single prompt version.
 */
 
-:- use_module(library/nbref, [with_nbref/2, nbref_new/3]).
+:- use_module(library(ccnbref), [with_nbref/2, nbref_new/3]).
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
 :- use_module(library(lambdaki)).
 

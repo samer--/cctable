@@ -8,7 +8,7 @@
    Double prompt version.
 */
 
-:- use_module(library/ccnbref,  [run_nb_ref/1, nbref_new/2]).
+:- use_module(library(ccnbref), [run_nb_ref/1, nbref_new/2]).
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
 :- use_module(library(lambdaki)).
 
