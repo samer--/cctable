@@ -4,7 +4,7 @@
 This module implements a shallow program transformation to support
 tabling. Predicates decalared `tabled` are renamed (by a appending
 a '#' to their given name) and the original predicate name defined
-as a metacall of the renamed predicate via cctable/1, which is 
+as a metacall of the renamed predicate via cctable/1, which is
 assumed to be available in the module where the tabled precicate
 is defined.
 */
@@ -14,27 +14,36 @@ is defined.
 %% table(PredSpecfiers) is det
 %  Declare predicates in PredSpecifiers (a comma separated list of Name/Arity
 %  predicate specifier) as tabled.
-system:term_expansion((:- table(Specs)), Clauses) :- 
-   foldl_clist(expand_cctab, Specs, Clauses, []).
+
+%! head_worker(+Head, -Worker) is det.
+%  Rename the head functor of any term by appending '#'. This is
+%  used to rename tabled predicates.
+head_worker(Head, Worker) :-
+   Head   =.. [H|As], atom_concat(H,'#',W),
+   Worker =.. [W|As].
 
 foldl_clist(P,(A,B)) --> !, call(P,A), foldl_clist(P,B).
 foldl_clist(P,A) --> call(P,A).
 
-expand_cctab(Name//Arity) --> !, 
-   {A2 is Arity+2}, 
-   expand_cctab(Name/A2).
-expand_cctab(Name/Arity) --> 
-   { functor(Head, Name, Arity), head_worker(Head, Worker)},
-   [ (:- discontiguous('$cctabled'/1))
-   , '$cctabled'(Head)
-   , (Head :- cctabled(Worker))
-   ]. 
+decl(F//A) --> !, {A2 is A+2}, decl(F/A2).
+decl(F/A) -->
+   { functor(Head, F, A), head_worker(Head, Work)},
+   [ (:- discontiguous('$cctabled'/2))
+   , '$cctabled'(F, A)
+   , (Head :- cctabled(Work))
+   ].
 
-prolog:rename_predicate(M:Head, M:Worker) :-
-   '$flushed_predicate'(M:'$cctabled'(_)),
-   call(M:'$cctabled'(Head)), !,
-   head_worker(Head, Worker).
+rename_tabled(Extra, Head, Work) :-
+   prolog_load_context(module, M),
+   current_predicate(M:'$cctabled'/2),
+   functor(Head, F, A), A2 is A+Extra,
+   M:'$cctabled'(F,A2),
+   head_worker(Head, Work).
 
-head_worker(Head, Worker) :-
-   Head   =.. [H|As], atom_concat(H,'#',W),
-   Worker =.. [W|As].
+expand((:- table(Specs)), Clauses) :- !, foldl_clist(decl, Specs, Clauses, []).
+expand((Head, P --> Body), (Head2, P --> Body)) :- !, rename_tabled(2, Head, Head2).
+expand((Head --> Body),    (Head2 --> Body))    :- !, rename_tabled(2, Head, Head2).
+expand((Head :- Body),     (Head2 :- Body))     :- !, rename_tabled(0, Head, Head2).
+expand(Head,               Head2)               :- rename_tabled(0, Head, Head2).
+
+system:term_expansion(T1, T2) :- expand(T1, T2).
