@@ -1,17 +1,27 @@
+<<<<<<< HEAD
 :- module(cctable_trie_kp_md, [run_tabled/1, cctabled/3, lattice/4, po/4, to/4]).
+=======
+:- module(cctable_trie_kp_md, [run_tabled/1, cctabled/3, get_tables/1, lattice/4, to/4]).
+>>>>>>> Remove support for partial order and simplify
 /** <module> Tabling using delimited control
 
    This version is based on cctable_trie_kp but with answer subsumption
    (ie mode directed tabling).
 
    Answer subsumption is controlled by an arbitrary ternary predicate that must
+<<<<<<< HEAD
    semideterministically combine a new answer with an existing one. Three ready made
    predicates are provided for this purpose: =|to/4|=, =|po/4|= and =|lattice/4|=.
+=======
+   semideterministically combine an existing answer with a new answer. Three ready made
+   predicates are provided for this purpose: =|to/4|=, and =|lattice/4|=.
+>>>>>>> Remove support for partial order and simplify
    =|to(Op)|= specifies a total order using the binary predicate Op. Eg, =|to(<)|=
-   keeps the minimum.  =|po(Op)|= specifies a partial order, e.g if =|shorter(X,Y)|=
-   succeeds when X is a shorter list than Y, then =|po(shorter)|= below keeps the shorter
-   of two lists or both if they are the same length. Finally, =|lattice(Join)|= represents
-   a lattice: two answer are combined using the given join (+,+,-) operator.
+   keeps the minimum.  =|lattice(Join)|= represents a lattice: two answer are combined
+   using the given join (+,+,-) operator.
+
+   NB. WITHOUT support for partial orders, there is never any need to keep more than one
+   answer in the solutions trie.
 */
 
 :- use_module(library(ccnbref), [run_nb_ref/1, nbref_new/2]).
@@ -37,22 +47,22 @@ cont_tab(susp(md(Join,Work,M), Cont), Trie, Ans) :-
    term_variables(Work,Y), K = k(Y,M,Ans,Cont),
    (  trie_lookup(Trie, Work, tab(Solns,Conts))
    -> lref_add(Conts, K),
-      trie_gen(Solns, Y, Ms), member(M, Ms),
+      trie_gen(Solns, Y, M),
       run_tab(Cont, Trie, Ans)
    ;  lref_new(Conts),
       trie_new(Solns),
       trie_insert(Trie, Work, tab(Solns,Conts)),
       (  run_tab(producer(Join, \Y^Work, Conts, Solns, Ans), Trie, Ans)
-      ;  trie_gen(Solns, Y, Ms), member(M,Ms), run_tab(Cont, Trie, Ans)
+      ;  trie_gen(Solns, Y, M), run_tab(Cont, Trie, Ans)
       )
    ).
 
 producer(Join, Generate, Conts, Solns, Ans) :-
    call(Generate, Y, M),
-   (  trie_lookup(Solns, Y, Ms0)
-   -> call(Join, M, Ms0, Ms1),
-      trie_update(Solns, Y, Ms1)
-   ;  trie_insert(Solns, Y, [M])
+   (  trie_lookup(Solns, Y, M0)
+   -> call(Join, M, M0, M1),
+      trie_update(Solns, Y, M1)
+   ;  trie_insert(Solns, Y, M)
    ),
    lref_get(Conts,Ks), member(k(Y,M,Ans,Cont),Ks), call(Cont).
 
@@ -60,11 +70,6 @@ lref_new(Ref) :- nbref_new([], Ref).
 lref_get(Ref, Xs) :- nb_getval(Ref, Ys), copy_term(Ys,Xs).
 lref_add(Ref, K) :- duplicate_term(K,K1), nb_getval(Ref, Ks), nb_linkval(Ref, [K1|Ks]).
 
-:- meta_predicate lattice(3,+,+,-), to(2,+,+,-), po(2,+,+,-).
-lattice(Join, X, [Y], [Z]) :- call(Join, X, Y, Z), Y \= Z.
-to(Op, M, [M0], [M]) :- call(Op, M, M0).  % total order
-po(PO, M, Ms, [M|Ms1]) :- % partial order
-   maplist(not_worse_than_or_eq(PO,M), Ms),
-   exclude(call(PO,M), Ms, Ms1).
-
-not_worse_than_or_eq(PO, X, Y) :- Y \= X, \+call(PO, Y, X).
+:- meta_predicate lattice(3,+,+,-), to(2,+,+,-).
+lattice(Join, X, Y, Z) :- call(Join, X, Y, Z), Y \= Z.
+to(Op, M, M0, M) :- call(Op, M, M0).  % total order
