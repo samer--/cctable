@@ -1,11 +1,11 @@
-:- module(cctable_trie_kp_md, [run_tabled/1, cctabled/3, get_tables/1, lattice/4, po/4, to/4]).
+:- module(cctable_trie_kp_md, [run_tabled/1, cctabled/3, lattice/4, po/4, to/4]).
 /** <module> Tabling using delimited control
 
    This version is based on cctable_trie_kp but with answer subsumption
    (ie mode directed tabling).
 
    Answer subsumption is controlled by an arbitrary ternary predicate that must
-   semideterministically combine an existing answer with a new answer. Three ready made
+   semideterministically combine a new answer with an existing one. Three ready made
    predicates are provided for this purpose: =|to/4|=, =|po/4|= and =|lattice/4|=.
    =|to(Op)|= specifies a total order using the binary predicate Op. Eg, =|to(<)|=
    keeps the minimum.  =|po(Op)|= specifies a partial order, e.g if =|shorter(X,Y)|=
@@ -26,9 +26,7 @@ cctabled(Work, M, J) :- p_shift(tab, md(J,Work,M)).
 :- meta_predicate run_tabled(0).
 run_tabled(Goal) :-
    term_variables(Goal, Ans), trie_new(Trie),
-   setup_call_cleanup(nb_setval('tab.trie', Trie), % ugly hack, only for get_tables/1
-                      run_nb_ref(run_tab(Goal, Trie, Ans)),
-                      nb_delete('tab.trie')).
+   run_nb_ref(run_tab(Goal, Trie, Ans)).
 
 run_tab(Goal, Trie, Ans) :-
    p_reset(tab, Goal, Status),
@@ -62,22 +60,11 @@ lref_new(Ref) :- nbref_new([], Ref).
 lref_get(Ref, Xs) :- nb_getval(Ref, Ys), copy_term(Ys,Xs).
 lref_add(Ref, K) :- duplicate_term(K,K1), nb_getval(Ref, Ks), nb_linkval(Ref, [K1|Ks]).
 
-get_tables(TablesTree) :-
-   nb_getval('tab.trie', Trie),
-   findall(Work-SL, trie_variant_class_solutions(Trie, Work, SL), Tables),
-   list_to_rbtree(Tables, TablesTree).
-
-trie_variant_class_solutions(Trie, Work, Solns) :-
-   trie_gen(Trie, Work, tab(SolnsTrie, _)),
-   numbervars(Work, 0, _),
-   findall(S, trie_gen(SolnsTrie,S,_), Solns).
-
 :- meta_predicate lattice(3,+,+,-), to(2,+,+,-), po(2,+,+,-).
 lattice(Join, X, [Y], [Z]) :- call(Join, X, Y, Z), Y \= Z.
 to(Op, M, [M0], [M]) :- call(Op, M, M0).  % total order
 po(PO, M, Ms, [M|Ms1]) :- % partial order
-   maplist(not_worse_than(PO, M), Ms),
-   % \+((member(M0, Ms), (M0=M1; call(PO, M1, M0))))
+   maplist(not_worse_than_or_eq(PO,M), Ms),
    exclude(call(PO,M), Ms, Ms1).
 
-not_worse_than(PO, X, Y) :- Y \= X, \+call(PO, Y, X).
+not_worse_than_or_eq(PO, X, Y) :- Y \= X, \+call(PO, Y, X).
