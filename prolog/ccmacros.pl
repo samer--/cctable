@@ -7,6 +7,13 @@ a '#' to their given name) and the original predicate name defined
 as a metacall of the renamed predicate via cctable/1, which is
 assumed to be available in the module where the tabled precicate
 is defined.
+
+Alternatives, tabled predicates declared as
+==
+   :- table pred(_,_,M).
+==
+where the last argument is nonvar are transformed for use with
+mode directed tabling.
 */
 
 :- op(1150,fx,table).
@@ -26,12 +33,29 @@ foldl_clist(P,(A,B)) --> !, call(P,A), foldl_clist(P,B).
 foldl_clist(P,A) --> call(P,A).
 
 decl(F//A) --> !, {A2 is A+2}, decl(F/A2).
-decl(F/A) -->
+decl(F/A) --> !,
    { functor(Head, F, A), head_worker(Head, Work)},
    [ (:- discontiguous('$cctabled'/2))
    , '$cctabled'(F, A)
    , (Head :- cctabled(Work))
    ].
+decl(Moded) -->
+   { Moded =.. [F|Args], length(Args, A),
+     append(CoreArgs, [ModeSpec], Args),
+     must_be(list(var), CoreArgs)
+   },
+   (  {var(ModeSpec)}
+   -> decl(F/A)
+   ;  { append(CoreArgs, [LastArg], FullArgs),
+        atom_concat(F,'#',W),
+        Head =.. [F|FullArgs],
+        Work =.. [W|CoreArgs]
+      },
+      [ (:- discontiguous('$cctabled'/2))
+      , '$cctabled'(F, A)
+      , (Head :- cctabled(Work, LastArg, ModeSpec))
+      ]
+   ).
 
 rename_tabled(Extra, Head, Work) :-
    prolog_load_context(module, M),
