@@ -1,3 +1,4 @@
+:- module(md_path, [path_length/4, path/4, run_tabled/1]).
 
 :- use_module(random_graph).
 :- use_module(cctable_trie_kp_md).
