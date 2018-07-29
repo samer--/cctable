@@ -1,4 +1,4 @@
-:- module(md_path, [path_length/4, path/4, run_tabled/1]).
+:- module(md_path, [path_length/4, path/4, path_vertices/4, run_tabled/1]).
 
 :- use_module(random_graph).
 :- use_module(cctable_trie_kp_md).
@@ -14,3 +14,8 @@ path(G,X,Y,[Z|M]) :- path(G,X,Z,M), edge(G,Z,Y).
 
 shorter(L1, L2) :- length(L1,N1), length(L2, N2), N1 < N2.
 min(X,Y,Z) :- X < Y -> Z=X; Z=Y.
+
+:- table path_vertices(_, _, _, lattice(ord_union)).
+path_vertices(G,X,Y,[]) :- edge(G,X,Y).
+path_vertices(G,X,Y,N) :- path_vertices(G,X,Z,M), edge(G,Z,Y), ord_union(M, [Z], N).
+
