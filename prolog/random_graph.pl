@@ -19,3 +19,15 @@ random_graph(a0, rand(852,23,7543), 200, 400).
 random_graph(b0, rand(874,238,235), 500, 1000).
 random_graph(c0, rand(121,555,888), 50, 100).
 random_graph(d0, rand(724,197,633), 10, 20).
+
+edge(0,X,Y) :- edge(X,Y).
+edge(a,b).
+edge(a,c).
+edge(b,d).
+edge(c,d).
+edge(d,e).
+edge(d,f).
+edge(f,g).
+edge(d,a).
+edge(g,e).
+edge(c,e).
