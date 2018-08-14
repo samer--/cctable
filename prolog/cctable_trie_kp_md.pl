@@ -5,7 +5,7 @@
    (ie mode directed tabling).
 
    Answer subsumption is controlled by an arbitrary ternary predicate that must
-   semideterministically combine a new answer with an existing one. Three ready made
+   semideterministically combine a new answer with existing ones. Three ready made
    predicates are provided for this purpose: =|to/4|=, =|po/4|= and =|lattice/4|=.
    =|to(Op)|= specifies a total order using the binary predicate Op. Eg, =|to(<)|=
    keeps the minimum.  =|po(Op)|= specifies a partial order, e.g if =|shorter(X,Y)|=
