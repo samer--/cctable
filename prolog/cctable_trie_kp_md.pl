@@ -1,21 +1,12 @@
-<<<<<<< HEAD
-:- module(cctable_trie_kp_md, [run_tabled/1, cctabled/3, lattice/4, po/4, to/4]).
-=======
-:- module(cctable_trie_kp_md, [run_tabled/1, cctabled/3, get_tables/1, lattice/4, to/4]).
->>>>>>> Remove support for partial order and simplify
+:- module(cctable_trie_kp_md, [run_tabled/1, cctabled/3, lattice/4, to/4]).
 /** <module> Tabling using delimited control
 
    This version is based on cctable_trie_kp but with answer subsumption
    (ie mode directed tabling).
 
    Answer subsumption is controlled by an arbitrary ternary predicate that must
-<<<<<<< HEAD
-   semideterministically combine a new answer with an existing one. Three ready made
-   predicates are provided for this purpose: =|to/4|=, =|po/4|= and =|lattice/4|=.
-=======
-   semideterministically combine an existing answer with a new answer. Three ready made
+   semideterministically combine an existing answer with a new answer. Two ready made
    predicates are provided for this purpose: =|to/4|=, and =|lattice/4|=.
->>>>>>> Remove support for partial order and simplify
    =|to(Op)|= specifies a total order using the binary predicate Op. Eg, =|to(<)|=
    keeps the minimum.  =|lattice(Join)|= represents a lattice: two answer are combined
    using the given join (+,+,-) operator.
